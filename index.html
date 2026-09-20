@@ -3,154 +3,316 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>দোকানের ইনভেন্টরি ও বারকোড স্ক্যানার</title>
+    <title>ইনভেন্টরি অ্যাপ</title>
     <!-- বারকোড স্ক্যান করার লাইব্রেরি -->
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 15px; background-color: #f4f4f9; margin: 0; }
-        
-        .header-card {
-            background: #ffffff;
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f4f7fc; 
+            margin: 0; 
             padding: 15px;
-            margin: 10px auto 20px auto;
-            max-width: 350px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            color: #333;
+        }
+
+        .header {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 15px;
-            text-align: left;
-            border-left: 5px solid #28a745;
+            padding: 10px 5px;
+            margin-bottom: 15px;
         }
-        .profile-img-container {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            overflow: hidden;
-            border: 2px solid #28a745;
-            flex-shrink: 0;
-            background-color: #eee;
+
+        .header h2 { margin: 0; color: #2c3e50; font-size: 24px; }
+        .back-btn {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
             cursor: pointer;
+            font-size: 14px;
+            display: none;
         }
-        .profile-img-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+
+        /* স্ক্রিনশটের মতো হোম গ্রিড লেআউট */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            max-width: 450px;
+            margin: 0 auto;
         }
-        .header-info h3 { margin: 0 0 5px 0; color: #333; font-size: 18px; }
-        .header-info p { margin: 0; color: #666; font-size: 13px; }
+
+        .grid-card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 20px 10px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid #eef2f5;
+        }
+
+        .grid-card:active {
+            transform: scale(0.97);
+        }
+
+        .grid-card img, .grid-card .icon {
+            width: 45px;
+            height: 45px;
+            margin-bottom: 10px;
+        }
+
+        .grid-card p {
+            margin: 0;
+            font-weight: 600;
+            font-size: 15px;
+            color: #334155;
+        }
+
+        /* পেজ সেকশনসমূহ */
+        .page-section { display: none; max-width: 450px; margin: 0 auto; }
+
+        #reader { width: 100%; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+
+        .card {
+            background: white;
+            padding: 18px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            margin-top: 15px;
+            text-align: left;
+        }
+
+        input, button { padding: 12px; margin: 8px 0; width: 100%; box-sizing: border-box; font-size: 15px; border-radius: 8px; border: 1px solid #cbd5e1; }
+        button { background-color: #2563eb; color: white; border: none; font-weight: bold; cursor: pointer; }
+        .btn-delete { background-color: #ef4444; color: white; margin-top: 8px; font-size: 13px; padding: 8px; }
+        .status-msg { font-size: 13px; color: #2563eb; font-weight: bold; margin: 5px 0; }
+        .preview-img { width: 100%; height: 160px; object-fit: cover; border-radius: 8px; margin: 10px 0; display: none; }
         
-        #reader { width: 100%; max-width: 350px; margin: 0 auto; border-radius: 8px; overflow: hidden; }
-        .product-card { background: white; padding: 15px; margin: 10px auto; max-width: 350px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: left; position: relative; }
-        .product-card img { width: 100%; height: 180px; object-fit: cover; border-radius: 6px; margin-bottom: 10px; }
-        input, button { padding: 12px; margin: 6px 0; width: 100%; box-sizing: border-box; font-size: 16px; }
-        button { background-color: #28a745; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
-        .btn-delete { background-color: #dc3545; color: white; padding: 8px 12px; border: none; border-radius: 4px; font-size: 14px; cursor: pointer; margin-top: 8px; width: 100%; }
-        .found-box { background: #e8f5e9; border: 2px solid #28a745; }
-        .status-msg { font-size: 13px; color: #007bff; font-weight: bold; margin: 5px 0; }
-        .preview-img { width: 100%; height: 150px; object-fit: cover; border-radius: 6px; margin: 10px 0; display: none; border: 1px solid #ddd; }
+        .prod-item {
+            display: flex;
+            gap: 12px;
+            background: white;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+            align-items: center;
+        }
+        .prod-item img { width: 65px; height: 65px; border-radius: 8px; object-fit: cover; }
+        .prod-info { flex-grow: 1; text-align: left; }
+        .prod-info h4 { margin: 0 0 4px 0; font-size: 15px; color: #1e293b; }
+        .prod-info p { margin: 2px 0; font-size: 12px; color: #64748b; }
     </style>
 </head>
 <body>
 
-    <!-- দোকানের মালিকের প্রোফাইল ও হেডার -->
-    <div class="header-card">
-        <div class="profile-img-container" onclick="document.getElementById('owner-img-input').click();">
-            <img id="owner-img" src="https://via.placeholder.com/100?text=Upload" alt="মালিকের ছবি">
+    <div class="header">
+        <button id="back-btn" class="back-btn" onclick="showHome()">← হোম</button>
+        <h2 id="page-title">Home</h2>
+        <div style="width: 50px;"></div>
+    </div>
+
+    <!-- হোম মেনু গ্রিড (হোম পেজ) -->
+    <div id="home-page" class="grid-container">
+        <div class="grid-card" onclick="openScanPage()">
+            <img src="https://img.icons8.com/color/96/barcode-reader.png" alt="Scan">
+            <p>Scan</p>
         </div>
-        <div class="header-info">
-            <h3>দোকানের ইনভেন্টরি</h3>
-            <p>ছবি পরিবর্তন করতে ট্যাপ করুন</p>
+        <div class="grid-card" onclick="openNewProductPage()">
+            <img src="https://img.icons8.com/color/96/add-product.png" alt="New product">
+            <p>New product</p>
         </div>
-        <input type="file" id="owner-img-input" accept="image/*" style="display:none;">
+        <div class="grid-card" onclick="openProductsPage()">
+            <img src="https://img.icons8.com/color/96/box.png" alt="Products">
+            <p>Products</p>
+        </div>
+        <div class="grid-card" onclick="alert('শীঘ্রই আসছে!')">
+            <img src="https://img.icons8.com/color/96/combo-chart.png" alt="Statistics">
+            <p>Statistics</p>
+        </div>
+        <div class="grid-card" onclick="alert('শীঘ্রই আসছে!')">
+            <img src="https://img.icons8.com/color/96/data-backup.png" alt="Export / Import">
+            <p>Export / Import</p>
+        </div>
+        <div class="grid-card" onclick="alert('শীঘ্রই আসছে!')">
+            <img src="https://img.icons8.com/color/96/settings.png" alt="Settings">
+            <p>Settings</p>
+        </div>
     </div>
 
-    <!-- ক্যামেরা দেখানোর জায়গা -->
-    <div id="reader"></div>
-
-    <!-- সেভ থাকা প্রোডাক্ট খুঁজে পেলে দেখানোর ঘর -->
-    <div id="scanned-result" style="display:none;" class="product-card found-box">
-        <h3 style="color:#28a745; margin-top:0;">প্রোডাক্ট পাওয়া গেছে!</h3>
-        <img id="res-img" src="" alt="প্রোডাক্ট ছবি">
-        <h3 id="res-name" style="margin:5px 0;"></h3>
-        <p>কোম্পানি/ব্র্যান্ড: <b id="res-brand"></b></p>
-        <p>বারকোড: <b id="res-barcode"></b></p>
-        <p>দাম: <b id="res-price" style="font-size: 18px; color: #d32f2f;"></b> AED</p>
-        <button onclick="resetScanner()">আবার স্ক্যান করুন</button>
+    <!-- স্ক্যানার সেকশন -->
+    <div id="scan-page" class="page-section">
+        <div id="reader"></div>
+        <div id="scanned-result" style="display:none;" class="card">
+            <h3 style="color:#16a34a; margin-top:0;">প্রোডাক্ট পাওয়া গেছে!</h3>
+            <img id="res-img" src="" alt="প্রোডাক্ট ছবি" style="width:100%; height:180px; object-fit:cover; border-radius:8px;">
+            <h3 id="res-name" style="margin:8px 0;"></h3>
+            <p>কোম্পানি: <b id="res-brand"></b></p>
+            <p>বারকোড: <b id="res-barcode"></b></p>
+            <p>দাম: <b id="res-price" style="font-size: 18px; color: #dc2626;"></b> AED</p>
+            <button onclick="restartScanner()">আবার স্ক্যান করুন</button>
+        </div>
     </div>
 
-    <!-- নতুন প্রোডাক্ট যুক্ত করার ফরম -->
-    <div id="product-form" style="display:none;" class="product-card">
-        <h3>নতুন প্রোডাক্ট যুক্ত করুন</h3>
-        <p>বারকোড: <b id="scanned-code"></b></p>
-        <div id="fetch-status" class="status-msg"></div>
-        
-        <!-- অটোমেটিক প্রাক-দর্শন বা ফটো প্রিভিউ -->
-        <img id="form-img-preview" class="preview-img" src="" alt="প্রোডাক্ট ছবি">
-        
-        <input type="text" id="prod-name" placeholder="প্রোডাক্টের নাম">
-        <input type="text" id="prod-brand" placeholder="কোম্পানি/ব্র্যান্ডের নাম">
-        <input type="number" id="prod-price" placeholder="দাম (AED)">
-        <label style="font-size:14px; color:#555;">ম্যানুয়ালি ছবি নিতে চাইলে (ক্যামেরা):</label>
-        
-        <input type="file" id="prod-img" accept="image/*" capture="environment">
-        
-        <button onclick="saveProduct()">সেভ করুন</button>
+    <!-- ম্যানুয়াল প্রোডাক্ট যুক্ত করার সেকশন -->
+    <div id="form-page" class="page-section">
+        <div class="card">
+            <h3 style="margin-top: 0;">প্রোডাক্ট তথ্য</h3>
+            <p>বারকোড: <b id="scanned-code">N/A</b></p>
+            <div id="fetch-status" class="status-msg"></div>
+            
+            <img id="form-img-preview" class="preview-img" src="" alt="ছবি">
+            
+            <input type="text" id="prod-name" placeholder="প্রোডাক্টের নাম">
+            <input type="text" id="prod-brand" placeholder="কোম্পানি/ব্র্যান্ডের নাম">
+            <input type="number" id="prod-price" placeholder="দাম (AED)">
+            
+            <label style="font-size:13px; color:#64748b; display:block; margin-top:5px;">ক্যামেরা দিয়ে ছবি তুলতে চাইলে:</label>
+            <input type="file" id="prod-img" accept="image/*" capture="environment">
+            
+            <button onclick="saveProduct()">সেভ করুন</button>
+        </div>
     </div>
 
-    <h3>সেভ করা প্রোডাক্ট তালিকা</h3>
-    <div id="product-list"></div>
+    <!-- প্রোডাক্ট তালিকা সেকশন -->
+    <div id="products-page" class="page-section">
+        <div id="product-list"></div>
+    </div>
 
     <script>
         let scannedBarcode = "";
         let products = JSON.parse(localStorage.getItem('my_products')) || [];
-        let html5QrcodeScanner;
+        let html5QrcodeScanner = null;
         let selectedImageData = "";
 
-        // বিওপ (Beep) সাউন্ড তৈরির ফাংশন
+        // বিওপ sound
         function playBeepSound() {
             try {
                 let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 let osc = audioCtx.createOscillator();
                 let gain = audioCtx.createGain();
-                
                 osc.type = "sine";
                 osc.frequency.setValueAtTime(800, audioCtx.currentTime);
                 gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
-                
                 osc.start();
                 osc.stop(audioCtx.currentTime + 0.15);
-            } catch (e) {
-                console.log("Audio Error:", e);
+            } catch (e) { console.log(e); }
+        }
+
+        function hideAllPages() {
+            document.getElementById('home-page').style.display = 'none';
+            document.getElementById('scan-page').style.display = 'none';
+            document.getElementById('form-page').style.display = 'none';
+            document.getElementById('products-page').style.display = 'none';
+            document.getElementById('back-btn').style.display = 'block';
+            stopScanner();
+        }
+
+        function showHome() {
+            hideAllPages();
+            document.getElementById('home-page').style.display = 'grid';
+            document.getElementById('back-btn').style.display = 'none';
+            document.getElementById('page-title').innerText = 'Home';
+        }
+
+        function openScanPage() {
+            hideAllPages();
+            document.getElementById('scan-page').style.display = 'block';
+            document.getElementById('scanned-result').style.display = 'none';
+            document.getElementById('page-title').innerText = 'Scan Barcode';
+            startScanner();
+        }
+
+        function openNewProductPage() {
+            hideAllPages();
+            document.getElementById('form-page').style.display = 'block';
+            document.getElementById('page-title').innerText = 'New Product';
+            resetForm();
+        }
+
+        function openProductsPage() {
+            hideAllPages();
+            document.getElementById('products-page').style.display = 'block';
+            document.getElementById('page-title').innerText = 'Products List';
+            renderProducts();
+        }
+
+        function startScanner() {
+            if(!html5QrcodeScanner) {
+                html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+                html5QrcodeScanner.render(onScanSuccess);
             }
         }
 
-        // প্রোফাইল ছবি লোড
-        let savedOwnerImg = localStorage.getItem('owner_photo');
-        if (savedOwnerImg) {
-            document.getElementById('owner-img').src = savedOwnerImg;
+        function stopScanner() {
+            if(html5QrcodeScanner) {
+                html5QrcodeScanner.clear().catch(error => console.error(error));
+                html5QrcodeScanner = null;
+            }
         }
 
-        // প্রোফাইল ছবি পরিবর্তন
-        document.getElementById('owner-img-input').addEventListener('change', function(e) {
-            let file = e.target.files[0];
-            if (file) {
-                let reader = new FileReader();
-                reader.onload = function(evt) {
-                    document.getElementById('owner-img').src = evt.target.result;
-                    localStorage.setItem('owner_photo', evt.target.result);
-                };
-                reader.readAsDataURL(file);
+        function restartScanner() {
+            document.getElementById('scanned-result').style.display = 'none';
+            startScanner();
+        }
+
+        async function onScanSuccess(decodedText) {
+            playBeepSound();
+            scannedBarcode = decodedText;
+            stopScanner();
+
+            let existingProduct = products.find(p => p.barcode === scannedBarcode);
+
+            if (existingProduct) {
+                document.getElementById('res-name').innerText = existingProduct.name;
+                document.getElementById('res-brand').innerText = existingProduct.brand || 'N/A';
+                document.getElementById('res-barcode').innerText = existingProduct.barcode;
+                document.getElementById('res-price').innerText = existingProduct.price;
+                document.getElementById('res-img').src = existingProduct.image || 'https://via.placeholder.com/150?text=No+Image';
+                document.getElementById('scanned-result').style.display = 'block';
+            } else {
+                openNewProductPage();
+                document.getElementById('scanned-code').innerText = scannedBarcode;
+                fetchProductOnline(scannedBarcode);
             }
-        });
+        }
 
-        renderProducts();
-        startScanner();
+        async function fetchProductOnline(barcode) {
+            document.getElementById('fetch-status').innerText = 'অনলাইনে তথ্য খোঁজা হচ্ছে...';
+            try {
+                let response = await fetch(`https://world.openfoodfacts.org/api/v2/product/${barcode}.json`);
+                let data = await response.json();
 
-        // ম্যানুয়ালি ছবি তুলে যুক্ত করার ঘর
+                if (data.status === 1 && data.product) {
+                    let pName = data.product.product_name || data.product.product_name_en || '';
+                    let pBrand = data.product.brands || '';
+                    let pImage = data.product.image_front_url || data.product.image_url || '';
+
+                    document.getElementById('prod-name').value = pName;
+                    document.getElementById('prod-brand').value = pBrand;
+
+                    if (pImage) {
+                        selectedImageData = pImage;
+                        let preview = document.getElementById('form-img-preview');
+                        preview.src = pImage;
+                        preview.style.display = 'block';
+                    }
+                    document.getElementById('fetch-status').innerText = '✓ তথ্য পাওয়া গেছে!';
+                } else {
+                    document.getElementById('fetch-status').innerText = 'অনলাইনে পাওয়া যায়নি, ম্যানুয়ালি লিখুন।';
+                }
+            } catch (err) {
+                document.getElementById('fetch-status').innerText = 'তথ্য খোঁজা সম্ভব হয়নি।';
+            }
+        }
+
         document.getElementById('prod-img').addEventListener('change', function(e) {
             let file = e.target.files[0];
             if (file) {
@@ -165,93 +327,30 @@
             }
         });
 
-        function startScanner() {
-            html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
-            html5QrcodeScanner.render(onScanSuccess);
+        function resetForm() {
+            document.getElementById('prod-name').value = '';
+            document.getElementById('prod-brand').value = '';
+            document.getElementById('prod-price').value = '';
+            document.getElementById('prod-img').value = '';
+            document.getElementById('form-img-preview').style.display = 'none';
+            document.getElementById('fetch-status').innerText = '';
+            selectedImageData = "";
+            scannedBarcode = "";
+            document.getElementById('scanned-code').innerText = 'N/A';
         }
 
-        // বারকোড স্ক্যান সফল হলে
-        async function onScanSuccess(decodedText) {
-            playBeepSound();
-            scannedBarcode = decodedText;
-            
-            let existingProduct = products.find(p => p.barcode === scannedBarcode);
-
-            if (existingProduct) {
-                document.getElementById('res-name').innerText = existingProduct.name;
-                document.getElementById('res-brand').innerText = existingProduct.brand || 'N/A';
-                document.getElementById('res-barcode').innerText = existingProduct.barcode;
-                document.getElementById('res-price').innerText = existingProduct.price;
-                document.getElementById('res-img').src = existingProduct.image || 'https://via.placeholder.com/150?text=No+Image';
-                
-                document.getElementById('scanned-result').style.display = 'block';
-                document.getElementById('product-form').style.display = 'none';
-            } else {
-                document.getElementById('scanned-code').innerText = scannedBarcode;
-                document.getElementById('product-form').style.display = 'block';
-                document.getElementById('scanned-result').style.display = 'none';
-
-                // আগের ডেটা পরিষ্কার করা
-                document.getElementById('prod-name').value = '';
-                document.getElementById('prod-brand').value = '';
-                document.getElementById('prod-price').value = '';
-                document.getElementById('form-img-preview').style.display = 'none';
-                document.getElementById('form-img-preview').src = '';
-                selectedImageData = "";
-                document.getElementById('fetch-status').innerText = 'অনলাইনে তথ্য ও ছবি খোঁজা হচ্ছে...';
-
-                // অনলাইনে প্রোডাক্টের তথ্য ও ছবি খোঁজা
-                try {
-                    let response = await fetch(`https://world.openfoodfacts.org/api/v2/product/${scannedBarcode}.json`);
-                    let data = await response.json();
-
-                    if (data.status === 1 && data.product) {
-                        let pName = data.product.product_name || data.product.product_name_en || '';
-                        let pBrand = data.product.brands || '';
-                        let pImage = data.product.image_front_url || data.product.image_url || '';
-
-                        document.getElementById('prod-name').value = pName;
-                        document.getElementById('prod-brand').value = pBrand;
-
-                        if (pImage) {
-                            selectedImageData = pImage;
-                            let preview = document.getElementById('form-img-preview');
-                            preview.src = pImage;
-                            preview.style.display = 'block';
-                        }
-
-                        if (pName || pImage) {
-                            document.getElementById('fetch-status').innerText = '✓ তথ্য ও ছবি পাওয়া গেছে!';
-                        } else {
-                            document.getElementById('fetch-status').innerText = 'অনলাইনে নাম/ছবি পাওয়া যায়নি, ম্যানুয়ালি দিন।';
-                        }
-                    } else {
-                        document.getElementById('fetch-status').innerText = 'অনলাইনে পাওয়া যায়নি, ম্যানুয়ালি লিখে সেভ করুন।';
-                    }
-                } catch (err) {
-                    document.getElementById('fetch-status').innerText = 'তথ্য খোঁজায় সমস্যা হয়েছে, ম্যানুয়ালি লিখুন।';
-                }
-            }
-        }
-
-        function resetScanner() {
-            document.getElementById('scanned-result').style.display = 'none';
-            document.getElementById('product-form').style.display = 'none';
-        }
-
-        // প্রোডাক্ট সেভ করা
         function saveProduct() {
             let name = document.getElementById('prod-name').value;
             let brand = document.getElementById('prod-brand').value;
             let price = document.getElementById('prod-price').value;
 
             if(!name || !price) {
-                alert("নাম এবং দাম দুটোই লিখুন!");
+                alert("নাম ও দাম দিন!");
                 return;
             }
 
             let item = { 
-                barcode: scannedBarcode, 
+                barcode: scannedBarcode || 'N/A', 
                 name: name, 
                 brand: brand,
                 price: price, 
@@ -260,22 +359,12 @@
             
             products.push(item);
             localStorage.setItem('my_products', JSON.stringify(products));
-
-            renderProducts();
-            
-            document.getElementById('prod-name').value = '';
-            document.getElementById('prod-brand').value = '';
-            document.getElementById('prod-price').value = '';
-            document.getElementById('prod-img').value = '';
-            document.getElementById('form-img-preview').style.display = 'none';
-            selectedImageData = "";
-            document.getElementById('product-form').style.display = 'none';
-            document.getElementById('fetch-status').innerText = '';
+            alert("প্রোডাক্ট সেভ হয়েছে!");
+            showHome();
         }
 
-        // প্রোডাক্ট ডিলিট করা
         function deleteProduct(index) {
-            if (confirm("আপনি কি নিশ্চিত যে এই প্রোডাক্টটি মুছে ফেলতে চান?")) {
+            if (confirm("মুছে ফেলতে চান?")) {
                 products.splice(index, 1);
                 localStorage.setItem('my_products', JSON.stringify(products));
                 renderProducts();
@@ -285,16 +374,22 @@
         function renderProducts() {
             let listDiv = document.getElementById('product-list');
             listDiv.innerHTML = '';
+            if(products.length === 0) {
+                listDiv.innerHTML = '<p style="color:#64748b;">কোনো প্রোডাক্ট সেভ নেই</p>';
+                return;
+            }
             products.forEach((p, index) => {
-                let imgTag = p.image ? `<img src="${p.image}" alt="${p.name}">` : '';
-                let brandInfo = p.brand ? `<br>কোম্পানি: ${p.brand}` : '';
+                let imgSrc = p.image || 'https://via.placeholder.com/65?text=No+Image';
                 listDiv.innerHTML += `
-                    <div class="product-card">
-                        ${imgTag}
-                        <b>${p.name}</b>${brandInfo}<br>
-                        বারকোড: ${p.barcode}<br>
-                        দাম: <b>${p.price} AED</b><br>
-                        <button class="btn-delete" onclick="deleteProduct(${index})">ডিলিট করুন</button>
+                    <div class="prod-item">
+                        <img src="${imgSrc}" alt="${p.name}">
+                        <div class="prod-info">
+                            <h4>${p.name}</h4>
+                            <p>কোম্পানি: ${p.brand || 'N/A'}</p>
+                            <p>বারকোড: ${p.barcode}</p>
+                            <p>দাম: <b style="color:#2563eb;">${p.price} AED</b></p>
+                        </div>
+                        <button class="btn-delete" style="width:auto;" onclick="deleteProduct(${index})">মুছুন</button>
                     </div>
                 `;
             });
