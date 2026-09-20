@@ -48,6 +48,7 @@
         .btn-delete { background-color: #dc3545; color: white; padding: 8px 12px; border: none; border-radius: 4px; font-size: 14px; cursor: pointer; margin-top: 8px; width: 100%; }
         .found-box { background: #e8f5e9; border: 2px solid #28a745; }
         .status-msg { font-size: 13px; color: #007bff; font-weight: bold; margin: 5px 0; }
+        .preview-img { width: 100%; height: 150px; object-fit: cover; border-radius: 6px; margin: 10px 0; display: none; border: 1px solid #ddd; }
     </style>
 </head>
 <body>
@@ -83,12 +84,15 @@
         <h3>নতুন প্রোডাক্ট যুক্ত করুন</h3>
         <p>বারকোড: <b id="scanned-code"></b></p>
         <div id="fetch-status" class="status-msg"></div>
+        
+        <!-- অটোমেটিক প্রাক-দর্শন বা ফটো প্রিভিউ -->
+        <img id="form-img-preview" class="preview-img" src="" alt="প্রোডাক্ট ছবি">
+        
         <input type="text" id="prod-name" placeholder="প্রোডাক্টের নাম">
         <input type="text" id="prod-brand" placeholder="কোম্পানি/ব্র্যান্ডের নাম">
         <input type="number" id="prod-price" placeholder="দাম (AED)">
-        <label style="font-size:14px; color:#555;">সরাসরি প্রোডাক্টের ছবি তুলুন:</label>
+        <label style="font-size:14px; color:#555;">ম্যানুয়ালি ছবি নিতে চাইলে (ক্যামেরা):</label>
         
-        <!-- capture="environment" থাকার কারণে সরাসরি ব্যাক ক্যামেরা চালু হবে -->
         <input type="file" id="prod-img" accept="image/*" capture="environment">
         
         <button onclick="saveProduct()">সেভ করুন</button>
@@ -146,13 +150,16 @@
         renderProducts();
         startScanner();
 
-        // প্রোডাক্টের ছবি তুলে প্রসেস করা
+        // ম্যানুয়ালি ছবি তুলে যুক্ত করার ঘর
         document.getElementById('prod-img').addEventListener('change', function(e) {
             let file = e.target.files[0];
             if (file) {
                 let reader = new FileReader();
                 reader.onload = function(evt) {
                     selectedImageData = evt.target.result;
+                    let preview = document.getElementById('form-img-preview');
+                    preview.src = selectedImageData;
+                    preview.style.display = 'block';
                 };
                 reader.readAsDataURL(file);
             }
@@ -184,13 +191,16 @@
                 document.getElementById('product-form').style.display = 'block';
                 document.getElementById('scanned-result').style.display = 'none';
 
-                // ফর্মে আগের ডেটা পরিষ্কার করা
+                // আগের ডেটা পরিষ্কার করা
                 document.getElementById('prod-name').value = '';
                 document.getElementById('prod-brand').value = '';
                 document.getElementById('prod-price').value = '';
-                document.getElementById('fetch-status').innerText = 'অনলাইনে প্রোডাক্টের তথ্য খোঁজা হচ্ছে...';
+                document.getElementById('form-img-preview').style.display = 'none';
+                document.getElementById('form-img-preview').src = '';
+                selectedImageData = "";
+                document.getElementById('fetch-status').innerText = 'অনলাইনে তথ্য ও ছবি খোঁজা হচ্ছে...';
 
-                // অনলাইনে প্রোডাক্টের তথ্য খোঁজা (Open Food Facts API)
+                // অনলাইনে প্রোডাক্টের তথ্য ও ছবি খোঁজা
                 try {
                     let response = await fetch(`https://world.openfoodfacts.org/api/v2/product/${scannedBarcode}.json`);
                     let data = await response.json();
@@ -198,14 +208,22 @@
                     if (data.status === 1 && data.product) {
                         let pName = data.product.product_name || data.product.product_name_en || '';
                         let pBrand = data.product.brands || '';
+                        let pImage = data.product.image_front_url || data.product.image_url || '';
 
                         document.getElementById('prod-name').value = pName;
                         document.getElementById('prod-brand').value = pBrand;
 
-                        if (pName) {
-                            document.getElementById('fetch-status').innerText = '✓ অনলাইনে প্রোডাক্ট ও কোম্পানির তথ্য পাওয়া গেছে!';
+                        if (pImage) {
+                            selectedImageData = pImage;
+                            let preview = document.getElementById('form-img-preview');
+                            preview.src = pImage;
+                            preview.style.display = 'block';
+                        }
+
+                        if (pName || pImage) {
+                            document.getElementById('fetch-status').innerText = '✓ তথ্য ও ছবি পাওয়া গেছে!';
                         } else {
-                            document.getElementById('fetch-status').innerText = 'অনলাইনে নাম পাওয়া যায়নি, ম্যানুয়ালি লিখুন।';
+                            document.getElementById('fetch-status').innerText = 'অনলাইনে নাম/ছবি পাওয়া যায়নি, ম্যানুয়ালি দিন।';
                         }
                     } else {
                         document.getElementById('fetch-status').innerText = 'অনলাইনে পাওয়া যায়নি, ম্যানুয়ালি লিখে সেভ করুন।';
@@ -249,6 +267,7 @@
             document.getElementById('prod-brand').value = '';
             document.getElementById('prod-price').value = '';
             document.getElementById('prod-img').value = '';
+            document.getElementById('form-img-preview').style.display = 'none';
             selectedImageData = "";
             document.getElementById('product-form').style.display = 'none';
             document.getElementById('fetch-status').innerText = '';
