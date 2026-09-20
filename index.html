@@ -47,6 +47,7 @@
         button { background-color: #28a745; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
         .btn-delete { background-color: #dc3545; color: white; padding: 8px 12px; border: none; border-radius: 4px; font-size: 14px; cursor: pointer; margin-top: 8px; width: 100%; }
         .found-box { background: #e8f5e9; border: 2px solid #28a745; }
+        .status-msg { font-size: 13px; color: #007bff; font-weight: bold; margin: 5px 0; }
     </style>
 </head>
 <body>
@@ -71,6 +72,7 @@
         <h3 style="color:#28a745; margin-top:0;">প্রোডাক্ট পাওয়া গেছে!</h3>
         <img id="res-img" src="" alt="প্রোডাক্ট ছবি">
         <h3 id="res-name" style="margin:5px 0;"></h3>
+        <p>কোম্পানি/ব্র্যান্ড: <b id="res-brand"></b></p>
         <p>বারকোড: <b id="res-barcode"></b></p>
         <p>দাম: <b id="res-price" style="font-size: 18px; color: #d32f2f;"></b> AED</p>
         <button onclick="resetScanner()">আবার স্ক্যান করুন</button>
@@ -80,7 +82,9 @@
     <div id="product-form" style="display:none;" class="product-card">
         <h3>নতুন প্রোডাক্ট যুক্ত করুন</h3>
         <p>বারকোড: <b id="scanned-code"></b></p>
+        <div id="fetch-status" class="status-msg"></div>
         <input type="text" id="prod-name" placeholder="প্রোডাক্টের নাম">
+        <input type="text" id="prod-brand" placeholder="কোম্পানি/ব্র্যান্ডের নাম">
         <input type="number" id="prod-price" placeholder="দাম (AED)">
         <label style="font-size:14px; color:#555;">সরাসরি প্রোডাক্টের ছবি তুলুন:</label>
         
@@ -107,14 +111,14 @@
                 let gain = audioCtx.createGain();
                 
                 osc.type = "sine";
-                osc.frequency.setValueAtTime(800, audioCtx.currentTime); // শব্দ/ফ্রিকোয়েন্সি
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
                 gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
                 
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
                 
                 osc.start();
-                osc.stop(audioCtx.currentTime + 0.15); // ০.১৫ সেকেন্ড শব্দ বাজবে
+                osc.stop(audioCtx.currentTime + 0.15);
             } catch (e) {
                 console.log("Audio Error:", e);
             }
@@ -159,17 +163,16 @@
             html5QrcodeScanner.render(onScanSuccess);
         }
 
-        // স্ক্যান সফল হলে
-        function onScanSuccess(decodedText) {
-            // ১. শব্দ বাজানো
+        // বারকোড স্ক্যান সফল হলে
+        async function onScanSuccess(decodedText) {
             playBeepSound();
-
             scannedBarcode = decodedText;
             
             let existingProduct = products.find(p => p.barcode === scannedBarcode);
 
             if (existingProduct) {
                 document.getElementById('res-name').innerText = existingProduct.name;
+                document.getElementById('res-brand').innerText = existingProduct.brand || 'N/A';
                 document.getElementById('res-barcode').innerText = existingProduct.barcode;
                 document.getElementById('res-price').innerText = existingProduct.price;
                 document.getElementById('res-img').src = existingProduct.image || 'https://via.placeholder.com/150?text=No+Image';
@@ -180,6 +183,36 @@
                 document.getElementById('scanned-code').innerText = scannedBarcode;
                 document.getElementById('product-form').style.display = 'block';
                 document.getElementById('scanned-result').style.display = 'none';
+
+                // ফর্মে আগের ডেটা পরিষ্কার করা
+                document.getElementById('prod-name').value = '';
+                document.getElementById('prod-brand').value = '';
+                document.getElementById('prod-price').value = '';
+                document.getElementById('fetch-status').innerText = 'অনলাইনে প্রোডাক্টের তথ্য খোঁজা হচ্ছে...';
+
+                // অনলাইনে প্রোডাক্টের তথ্য খোঁজা (Open Food Facts API)
+                try {
+                    let response = await fetch(`https://world.openfoodfacts.org/api/v2/product/${scannedBarcode}.json`);
+                    let data = await response.json();
+
+                    if (data.status === 1 && data.product) {
+                        let pName = data.product.product_name || data.product.product_name_en || '';
+                        let pBrand = data.product.brands || '';
+
+                        document.getElementById('prod-name').value = pName;
+                        document.getElementById('prod-brand').value = pBrand;
+
+                        if (pName) {
+                            document.getElementById('fetch-status').innerText = '✓ অনলাইনে প্রোডাক্ট ও কোম্পানির তথ্য পাওয়া গেছে!';
+                        } else {
+                            document.getElementById('fetch-status').innerText = 'অনলাইনে নাম পাওয়া যায়নি, ম্যানুয়ালি লিখুন।';
+                        }
+                    } else {
+                        document.getElementById('fetch-status').innerText = 'অনলাইনে পাওয়া যায়নি, ম্যানুয়ালি লিখে সেভ করুন।';
+                    }
+                } catch (err) {
+                    document.getElementById('fetch-status').innerText = 'তথ্য খোঁজায় সমস্যা হয়েছে, ম্যানুয়ালি লিখুন।';
+                }
             }
         }
 
@@ -188,9 +221,10 @@
             document.getElementById('product-form').style.display = 'none';
         }
 
-        // প্রোডাক্ট সেভ
+        // প্রোডাক্ট সেভ করা
         function saveProduct() {
             let name = document.getElementById('prod-name').value;
+            let brand = document.getElementById('prod-brand').value;
             let price = document.getElementById('prod-price').value;
 
             if(!name || !price) {
@@ -201,6 +235,7 @@
             let item = { 
                 barcode: scannedBarcode, 
                 name: name, 
+                brand: brand,
                 price: price, 
                 image: selectedImageData 
             };
@@ -211,13 +246,15 @@
             renderProducts();
             
             document.getElementById('prod-name').value = '';
+            document.getElementById('prod-brand').value = '';
             document.getElementById('prod-price').value = '';
             document.getElementById('prod-img').value = '';
             selectedImageData = "";
             document.getElementById('product-form').style.display = 'none';
+            document.getElementById('fetch-status').innerText = '';
         }
 
-        // প্রোডাক্ট ডিলিট
+        // প্রোডাক্ট ডিলিট করা
         function deleteProduct(index) {
             if (confirm("আপনি কি নিশ্চিত যে এই প্রোডাক্টটি মুছে ফেলতে চান?")) {
                 products.splice(index, 1);
@@ -231,10 +268,11 @@
             listDiv.innerHTML = '';
             products.forEach((p, index) => {
                 let imgTag = p.image ? `<img src="${p.image}" alt="${p.name}">` : '';
+                let brandInfo = p.brand ? `<br>কোম্পানি: ${p.brand}` : '';
                 listDiv.innerHTML += `
                     <div class="product-card">
                         ${imgTag}
-                        <b>${p.name}</b><br>
+                        <b>${p.name}</b>${brandInfo}<br>
                         বারকোড: ${p.barcode}<br>
                         দাম: <b>${p.price} AED</b><br>
                         <button class="btn-delete" onclick="deleteProduct(${index})">ডিলিট করুন</button>
