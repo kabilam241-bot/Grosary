@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>দোকানের ইনভентরি ও বারকোড স্ক্যানার</title>
+    <title>দোকানের ইনভেন্টরি ও বারকোড স্ক্যানার</title>
     <!-- বারকোড স্ক্যান করার লাইব্রেরি -->
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; padding: 15px; background-color: #f4f4f9; margin: 0; }
         
-        /* প্রোফাইল হেডার স্টাইল */
         .header-card {
             background: #ffffff;
             padding: 15px;
@@ -59,7 +58,7 @@
         </div>
         <div class="header-info">
             <h3>দোকানের ইনভেন্টরি</h3>
-            <p>প্রোফাইল ছবি পরিবর্তন করতে ছবির ওপর ট্যাপ করুন</p>
+            <p>ছবি পরিবর্তন করতে ট্যাপ করুন</p>
         </div>
         <input type="file" id="owner-img-input" accept="image/*" style="display:none;">
     </div>
@@ -83,8 +82,11 @@
         <p>বারকোড: <b id="scanned-code"></b></p>
         <input type="text" id="prod-name" placeholder="প্রোডাক্টের নাম">
         <input type="number" id="prod-price" placeholder="দাম (AED)">
-        <label style="font-size:14px; color:#555;">প্রোডাক্টের ছবি তুলুন/সিলেক্ট করুন:</label>
-        <input type="file" id="prod-img" accept="image/*">
+        <label style="font-size:14px; color:#555;">সরাসরি প্রোডাক্টের ছবি তুলুন:</label>
+        
+        <!-- capture="environment" থাকার কারণে সরাসরি ব্যাক ক্যামেরা চালু হবে -->
+        <input type="file" id="prod-img" accept="image/*" capture="environment">
+        
         <button onclick="saveProduct()">সেভ করুন</button>
     </div>
 
@@ -97,13 +99,34 @@
         let html5QrcodeScanner;
         let selectedImageData = "";
 
-        // নিজের ছবি সেভ রাখা লোড করা
+        // বিওপ (Beep) সাউন্ড তৈরির ফাংশন
+        function playBeepSound() {
+            try {
+                let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                
+                osc.type = "sine";
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime); // শব্দ/ফ্রিকোয়েন্সি
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.15); // ০.১৫ সেকেন্ড শব্দ বাজবে
+            } catch (e) {
+                console.log("Audio Error:", e);
+            }
+        }
+
+        // প্রোফাইল ছবি লোড
         let savedOwnerImg = localStorage.getItem('owner_photo');
         if (savedOwnerImg) {
             document.getElementById('owner-img').src = savedOwnerImg;
         }
 
-        // নিজের ছবি পরিবর্তনের অপশন
+        // প্রোফাইল ছবি পরিবর্তন
         document.getElementById('owner-img-input').addEventListener('change', function(e) {
             let file = e.target.files[0];
             if (file) {
@@ -119,7 +142,7 @@
         renderProducts();
         startScanner();
 
-        // প্রোডাক্টের ছবির ফাইলকে Base64 টেক্সটে রূপান্তর
+        // প্রোডাক্টের ছবি তুলে প্রসেস করা
         document.getElementById('prod-img').addEventListener('change', function(e) {
             let file = e.target.files[0];
             if (file) {
@@ -136,8 +159,11 @@
             html5QrcodeScanner.render(onScanSuccess);
         }
 
-        // বারকোড স্ক্যান হলে কাজ করা
+        // স্ক্যান সফল হলে
         function onScanSuccess(decodedText) {
+            // ১. শব্দ বাজানো
+            playBeepSound();
+
             scannedBarcode = decodedText;
             
             let existingProduct = products.find(p => p.barcode === scannedBarcode);
@@ -162,7 +188,7 @@
             document.getElementById('product-form').style.display = 'none';
         }
 
-        // প্রোডাক্ট সেভ করা
+        // প্রোডাক্ট সেভ
         function saveProduct() {
             let name = document.getElementById('prod-name').value;
             let price = document.getElementById('prod-price').value;
@@ -191,7 +217,7 @@
             document.getElementById('product-form').style.display = 'none';
         }
 
-        // প্রোডাক্ট ডিলিট করার ফাংশন
+        // প্রোডাক্ট ডিলিট
         function deleteProduct(index) {
             if (confirm("আপনি কি নিশ্চিত যে এই প্রোডাক্টটি মুছে ফেলতে চান?")) {
                 products.splice(index, 1);
