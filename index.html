@@ -36,7 +36,7 @@
             display: none;
         }
 
-        /* স্ক্রিনশটের মতো হোম গ্রিড লেআউট */
+        /* হোম গ্রিড লেআউট */
         .grid-container {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -56,11 +56,9 @@
             border: 1px solid #eef2f5;
         }
 
-        .grid-card:active {
-            transform: scale(0.97);
-        }
+        .grid-card:active { transform: scale(0.97); }
 
-        .grid-card img, .grid-card .icon {
+        .grid-card img {
             width: 45px;
             height: 45px;
             margin-bottom: 10px;
@@ -117,7 +115,7 @@
         <div style="width: 50px;"></div>
     </div>
 
-    <!-- হোম মেনু গ্রিড (হোম পেজ) -->
+    <!-- হোম মেনু গ্রিড -->
     <div id="home-page" class="grid-container">
         <div class="grid-card" onclick="openScanPage()">
             <img src="https://img.icons8.com/color/96/barcode-reader.png" alt="Scan">
@@ -159,7 +157,7 @@
         </div>
     </div>
 
-    <!-- ম্যানুয়াল প্রোডাক্ট যুক্ত করার সেকশন -->
+    <!-- নতুন প্রোডাক্ট যুক্ত করার সেকশন -->
     <div id="form-page" class="page-section">
         <div class="card">
             <h3 style="margin-top: 0;">প্রোডাক্ট তথ্য</h3>
@@ -185,12 +183,11 @@
     </div>
 
     <script>
-        let scannedBarcode = "";
+        let currentBarcode = "";
         let products = JSON.parse(localStorage.getItem('my_products')) || [];
         let html5QrcodeScanner = null;
         let selectedImageData = "";
 
-        // বিওপ sound
         function playBeepSound() {
             try {
                 let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -230,11 +227,17 @@
             startScanner();
         }
 
-        function openNewProductPage() {
+        function openNewProductPage(barcode = "") {
             hideAllPages();
             document.getElementById('form-page').style.display = 'block';
             document.getElementById('page-title').innerText = 'New Product';
             resetForm();
+            
+            if(barcode) {
+                currentBarcode = barcode;
+                document.getElementById('scanned-code').innerText = barcode;
+                fetchProductOnline(barcode);
+            }
         }
 
         function openProductsPage() {
@@ -265,10 +268,12 @@
 
         async function onScanSuccess(decodedText) {
             playBeepSound();
-            scannedBarcode = decodedText;
+            let scannedCode = decodedText.trim();
             stopScanner();
 
-            let existingProduct = products.find(p => p.barcode === scannedBarcode);
+            // সেভ থাকা প্রোডাক্ট চেক করা
+            products = JSON.parse(localStorage.getItem('my_products')) || [];
+            let existingProduct = products.find(p => String(p.barcode).trim() === scannedCode);
 
             if (existingProduct) {
                 document.getElementById('res-name').innerText = existingProduct.name;
@@ -278,9 +283,7 @@
                 document.getElementById('res-img').src = existingProduct.image || 'https://via.placeholder.com/150?text=No+Image';
                 document.getElementById('scanned-result').style.display = 'block';
             } else {
-                openNewProductPage();
-                document.getElementById('scanned-code').innerText = scannedBarcode;
-                fetchProductOnline(scannedBarcode);
+                openNewProductPage(scannedCode);
             }
         }
 
@@ -304,12 +307,12 @@
                         preview.src = pImage;
                         preview.style.display = 'block';
                     }
-                    document.getElementById('fetch-status').innerText = '✓ তথ্য পাওয়া গেছে!';
+                    document.getElementById('fetch-status').innerText = '✓ তথ্য ও ছবি পাওয়া গেছে!';
                 } else {
                     document.getElementById('fetch-status').innerText = 'অনলাইনে পাওয়া যায়নি, ম্যানুয়ালি লিখুন।';
                 }
             } catch (err) {
-                document.getElementById('fetch-status').innerText = 'তথ্য খোঁজা সম্ভব হয়নি।';
+                document.getElementById('fetch-status').innerText = 'অনলাইনে খোঁজা সম্ভব হয়নি।';
             }
         }
 
@@ -335,7 +338,7 @@
             document.getElementById('form-img-preview').style.display = 'none';
             document.getElementById('fetch-status').innerText = '';
             selectedImageData = "";
-            scannedBarcode = "";
+            currentBarcode = "";
             document.getElementById('scanned-code').innerText = 'N/A';
         }
 
@@ -345,12 +348,16 @@
             let price = document.getElementById('prod-price').value;
 
             if(!name || !price) {
-                alert("নাম ও দাম দিন!");
+                alert("নাম ও দাম অবশ্যই দিতে হবে!");
                 return;
             }
 
+            if(!currentBarcode || currentBarcode === "N/A") {
+                alert("সতর্কতা: স্ক্যান না করে প্রোডাক্ট সেভ করছেন, তাই এতে নির্দিষ্ট বারকোড থাকবে না। স্ক্যান করে সেভ করতে 'Scan' মেনু ব্যবহার করুন।");
+            }
+
             let item = { 
-                barcode: scannedBarcode || 'N/A', 
+                barcode: currentBarcode || 'N/A', 
                 name: name, 
                 brand: brand,
                 price: price, 
@@ -359,7 +366,7 @@
             
             products.push(item);
             localStorage.setItem('my_products', JSON.stringify(products));
-            alert("প্রোডাক্ট সেভ হয়েছে!");
+            alert("প্রোডাক্ট সফলভাবে সেভ হয়েছে!");
             showHome();
         }
 
@@ -374,6 +381,8 @@
         function renderProducts() {
             let listDiv = document.getElementById('product-list');
             listDiv.innerHTML = '';
+            products = JSON.parse(localStorage.getItem('my_products')) || [];
+
             if(products.length === 0) {
                 listDiv.innerHTML = '<p style="color:#64748b;">কোনো প্রোডাক্ট সেভ নেই</p>';
                 return;
