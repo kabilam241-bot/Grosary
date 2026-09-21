@@ -64,7 +64,7 @@
             display: none;
         }
 
-        /* অরিজিনাল কার্ড গ্রিড */
+        /* গ্রিড লেআউট */
         .grid-container {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -113,7 +113,7 @@
             margin: 0 auto;
         }
 
-        #reader {
+        #reader, #form-reader {
             width: 100%;
             border-radius: 16px;
             overflow: hidden;
@@ -145,7 +145,13 @@
             border: none;
             font-weight: 600;
             cursor: pointer;
-            margin-top: 15px;
+            margin-top: 10px;
+        }
+
+        .btn-scan-inline {
+            background-color: #059669;
+            margin-top: 0;
+            margin-bottom: 10px;
         }
 
         .item-list-entry {
@@ -186,7 +192,6 @@
 
     <div class="header">
         <div class="header-user">
-            <!-- প্রোফাইল ছবি যুক্ত করার অংশ -->
             <div class="profile-pic-container" onclick="document.getElementById('user-pic-file').click();">
                 <img id="user-profile-img" class="profile-pic" src="https://via.placeholder.com/150" alt="Profile">
                 <input type="file" id="user-pic-file" accept="image/*" style="display:none;">
@@ -235,7 +240,7 @@
         </div>
     </div>
 
-    <!-- স্ক্যান করার ভিউ -->
+    <!-- হোম পেজের মূল স্ক্যানার ভিউ -->
     <div id="scan-view" class="page-view">
         <div id="reader"></div>
         <div id="scan-res" class="result-card" style="display:none;">
@@ -249,14 +254,19 @@
         </div>
     </div>
 
-    <!-- নতুন প্রোডাক্ট ফর্ম ভিউ -->
+    <!-- নতুন প্রোডাক্ট ফরম ভিউ (ইনলাইন স্ক্যানার সুবিধা সহ) -->
     <div id="form-view" class="page-view">
         <div class="form-card">
-            <p style="margin-top:0;">Barcode: <b id="bar-code-text" style="color:#2563eb;">N/A</b></p>
-            <div id="status-msg" style="font-size:13px; color:#2563eb; margin-bottom:10px;"></div>
+            <button class="btn-scan-inline" onclick="startFormScanner()">📷 Scan Barcode for this Product</button>
+            <div id="form-reader" style="display:none; margin-bottom:10px;"></div>
+
+            <label style="font-size:13px; font-weight:600; color:#475569;">Barcode Number:</label>
+            <input type="text" id="p-barcode" placeholder="Scan or enter Barcode">
             
+            <div id="status-msg" style="font-size:13px; color:#2563eb; margin-bottom:5px;"></div>
             <img id="preview-image" src="" style="width:100%; height:150px; object-fit:cover; border-radius:8px; display:none; margin-bottom:10px;">
 
+            <label style="font-size:13px; font-weight:600; color:#475569;">Product Details:</label>
             <input type="text" id="p-name" placeholder="Product Name">
             <input type="text" id="p-brand" placeholder="Brand Name">
             <input type="number" id="p-price" placeholder="Price (AED)">
@@ -272,11 +282,10 @@
     </div>
 
     <script>
-        let currentBarcode = "";
         let qrScanner = null;
+        let formQrScanner = null;
         let imageBase64 = "";
 
-        // প্রোফাইল পিকচার সেভ এবং লোড করার লজিক
         window.onload = function() {
             let savedPic = localStorage.getItem('user_profile_pic');
             if(savedPic) {
@@ -319,6 +328,7 @@
             document.getElementById('list-view').style.display = 'none';
             document.getElementById('back-btn').style.display = 'inline-block';
             stopQr();
+            stopFormQr();
         }
 
         function showHome() {
@@ -342,11 +352,9 @@
             document.getElementById('title').innerText = 'New Product';
             resetForm();
 
-            currentBarcode = String(code).trim();
-            document.getElementById('bar-code-text').innerText = currentBarcode || 'N/A';
-
-            if(currentBarcode) {
-                fetchOnlineDetails(currentBarcode);
+            if(code) {
+                document.getElementById('p-barcode').value = String(code).trim();
+                fetchOnlineDetails(code);
             }
         }
 
@@ -369,6 +377,27 @@
                 qrScanner.clear().catch(e => console.log(e));
                 qrScanner = null;
             }
+        }
+
+        function startFormScanner() {
+            document.getElementById('form-reader').style.display = 'block';
+            if(!formQrScanner) {
+                formQrScanner = new Html5QrcodeScanner("form-reader", { fps: 10, qrbox: 220 });
+                formQrScanner.render(function(decodedText) {
+                    playBeep();
+                    document.getElementById('p-barcode').value = String(decodedText).trim();
+                    fetchOnlineDetails(decodedText);
+                    stopFormQr();
+                });
+            }
+        }
+
+        function stopFormQr() {
+            if(formQrScanner) {
+                formQrScanner.clear().catch(e => console.log(e));
+                formQrScanner = null;
+            }
+            document.getElementById('form-reader').style.display = 'none';
         }
 
         function rescan() {
@@ -397,7 +426,7 @@
         }
 
         async function fetchOnlineDetails(barcode) {
-            document.getElementById('status-msg').innerText = 'Fetching product details online...';
+            document.getElementById('status-msg').innerText = 'Fetching online details...';
             try {
                 let res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${barcode}.json`);
                 let data = await res.json();
@@ -416,7 +445,7 @@
                     document.getElementById('status-msg').innerText = 'Not found online. Enter details manually.';
                 }
             } catch(e) {
-                document.getElementById('status-msg').innerText = 'Could not fetch online details.';
+                document.getElementById('status-msg').innerText = 'Enter details manually.';
             }
         }
 
@@ -448,6 +477,7 @@
         });
 
         function resetForm() {
+            document.getElementById('p-barcode').value = '';
             document.getElementById('p-name').value = '';
             document.getElementById('p-brand').value = '';
             document.getElementById('p-price').value = '';
@@ -455,13 +485,18 @@
             document.getElementById('preview-image').style.display = 'none';
             document.getElementById('status-msg').innerText = '';
             imageBase64 = "";
-            currentBarcode = "";
         }
 
         function saveProduct() {
-            let name = document.getElementById('p-name').value;
-            let brand = document.getElementById('p-brand').value;
-            let price = document.getElementById('p-price').value;
+            let barcode = document.getElementById('p-barcode').value.trim();
+            let name = document.getElementById('p-name').value.trim();
+            let brand = document.getElementById('p-brand').value.trim();
+            let price = document.getElementById('p-price').value.trim();
+
+            if(!barcode) {
+                alert("Please scan or enter a Barcode!");
+                return;
+            }
 
             if(!name || !price) {
                 alert("Please fill Name and Price!");
@@ -471,7 +506,7 @@
             let products = JSON.parse(localStorage.getItem('my_grosary_items')) || [];
             
             let item = {
-                barcode: currentBarcode || 'N/A',
+                barcode: barcode,
                 name: name,
                 brand: brand,
                 price: price,
