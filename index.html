@@ -471,28 +471,33 @@
         let currentLang = localStorage.getItem('app_lang') || 'bn';
         let activePage = 'home';
 
-        // --- IndexedDB দিয়ে হাজার হাজার প্রোডাক্ট সেভ করার ডেটাবেস লজিক ---
-        let db;
-        const dbReq = indexedDB.open("GroceryStoreDB", 1);
+        // --- IndexedDB নির্ভরযোগ্য লজিক ---
+        let db = null;
 
-        dbReq.onupgradeneeded = function(e) {
-            db = e.target.result;
-            if(!db.objectStoreNames.contains("products")) {
-                db.createObjectStore("products", { keyPath: "barcode" });
-            }
-        };
-
-        dbReq.onsuccess = function(e) {
-            db = e.target.result;
-        };
-
-        dbReq.onerror = function(e) {
-            console.error("IndexedDB Error:", e);
-        };
-
-        function dbSaveProduct(item) {
+        function initDB() {
             return new Promise((resolve, reject) => {
-                let tx = db.transaction("products", "readwrite");
+                if(db) return resolve(db);
+                const dbReq = indexedDB.open("GroceryStoreDB", 1);
+                dbReq.onupgradeneeded = function(e) {
+                    let database = e.target.result;
+                    if(!database.objectStoreNames.contains("products")) {
+                        database.createObjectStore("products", { keyPath: "barcode" });
+                    }
+                };
+                dbReq.onsuccess = function(e) {
+                    db = e.target.result;
+                    resolve(db);
+                };
+                dbReq.onerror = function(e) {
+                    reject("IndexedDB error: " + e.target.errorCode);
+                };
+            });
+        }
+
+        async function dbSaveProduct(item) {
+            let database = await initDB();
+            return new Promise((resolve, reject) => {
+                let tx = database.transaction("products", "readwrite");
                 let store = tx.objectStore("products");
                 let request = store.put(item);
                 request.onsuccess = () => resolve(true);
@@ -500,19 +505,22 @@
             });
         }
 
-        function dbGetProduct(barcode) {
+        async function dbGetProduct(barcode) {
+            let database = await initDB();
             return new Promise((resolve, reject) => {
-                let tx = db.transaction("products", "readonly");
+                let tx = database.transaction("products", "readonly");
                 let store = tx.objectStore("products");
-                let request = store.get(barcode);
+                let cleanCode = String(barcode).trim();
+                let request = store.get(cleanCode);
                 request.onsuccess = () => resolve(request.result);
                 request.onerror = (e) => reject(e);
             });
         }
 
-        function dbGetAllProducts() {
+        async function dbGetAllProducts() {
+            let database = await initDB();
             return new Promise((resolve, reject) => {
-                let tx = db.transaction("products", "readonly");
+                let tx = database.transaction("products", "readonly");
                 let store = tx.objectStore("products");
                 let request = store.getAll();
                 request.onsuccess = () => resolve(request.result);
@@ -520,11 +528,13 @@
             });
         }
 
-        function dbDeleteProduct(barcode) {
+        async function dbDeleteProduct(barcode) {
+            let database = await initDB();
             return new Promise((resolve, reject) => {
-                let tx = db.transaction("products", "readwrite");
+                let tx = database.transaction("products", "readwrite");
                 let store = tx.objectStore("products");
-                let request = store.delete(barcode);
+                let cleanCode = String(barcode).trim();
+                let request = store.delete(cleanCode);
                 request.onsuccess = () => resolve(true);
                 request.onerror = (e) => reject(e);
             });
@@ -603,6 +613,7 @@
         };
 
         window.onload = function() {
+            initDB();
             let savedPic = localStorage.getItem('user_profile_pic');
             if(savedPic) {
                 document.getElementById('user-profile-img').src = savedPic;
@@ -805,7 +816,6 @@
                     if(p.quantity) document.getElementById('p-size').value = p.quantity;
                     if(p.brands) document.getElementById('p-brand').value = p.brands;
                     if(p.image_front_url) {
-                        // অনলাইন ছবি নিয়ে কমপ্রেস করে সাদা ব্যাকগ্রাউন্ড দেয়া
                         let img = new Image();
                         img.crossOrigin = "Anonymous";
                         img.src = p.image_front_url;
@@ -833,7 +843,6 @@
             }
         }
 
-        // ছবি কমপ্রেস করার জন্য ইউটিলিটি ফাংশন
         function compressImage(file, maxWidth, quality, callback) {
             let reader = new FileReader();
             reader.onload = function(evt) {
@@ -883,7 +892,8 @@
 
         async function saveProduct() {
             const t = i18n[currentLang];
-            let barcode = document.getElementById('p-barcode').value.trim();
+            let rawBarcode = document.getElementById('p-barcode').value;
+            let barcode = String(rawBarcode).trim();
             let name = document.getElementById('p-name').value.trim();
             let size = document.getElementById('p-size').value.trim();
             let brand = document.getElementById('p-brand').value.trim();
