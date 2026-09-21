@@ -1,404 +1,481 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ইনভেন্টরি অ্যাপ</title>
-    <!-- বারকোড স্ক্যান করার লাইব্রেরি -->
+    <title>Grosary Inventory</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        * { box-sizing: border-box; }
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background-color: #f4f7fc; 
-            margin: 0; 
-            padding: 15px;
-            color: #333;
+        * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f6f8fc;
+            margin: 0;
+            padding: 20px;
+            color: #2c3e50;
         }
 
         .header {
+            margin-bottom: 25px;
+            padding-left: 5px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 10px 5px;
-            margin-bottom: 15px;
+            justify-content: space-between;
         }
 
-        .header h2 { margin: 0; color: #2c3e50; font-size: 24px; }
+        .header h1 {
+            font-size: 26px;
+            font-weight: 700;
+            margin: 0;
+            color: #1e293b;
+        }
+
         .back-btn {
-            background-color: #6c757d;
-            color: white;
+            background-color: #e2e8f0;
+            color: #334155;
             border: none;
-            padding: 8px 14px;
-            border-radius: 6px;
+            padding: 8px 16px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 14px;
+            font-weight: 600;
             display: none;
         }
 
-        /* হোম গ্রিড লেআউট */
+        /* কার্ডের মূল গ্রিড লেআউট */
         .grid-container {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            max-width: 450px;
+            gap: 16px;
+            max-width: 500px;
             margin: 0 auto;
         }
 
-        .grid-card {
+        .card {
             background: #ffffff;
-            border-radius: 16px;
-            padding: 20px 10px;
+            border-radius: 20px;
+            padding: 25px 15px;
             text-align: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            border: 1px solid #eef2f5;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #f1f5f9;
         }
 
-        .grid-card:active { transform: scale(0.97); }
-
-        .grid-card img {
-            width: 45px;
-            height: 45px;
-            margin-bottom: 10px;
+        .card:active {
+            transform: scale(0.96);
         }
 
-        .grid-card p {
+        .card img, .card svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 12px;
+            object-fit: contain;
+        }
+
+        .card p {
             margin: 0;
             font-weight: 600;
             font-size: 15px;
             color: #334155;
         }
 
-        /* পেজ সেকশনসমূহ */
-        .page-section { display: none; max-width: 450px; margin: 0 auto; }
-
-        #reader { width: 100%; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-
-        .card {
-            background: white;
-            padding: 18px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            margin-top: 15px;
-            text-align: left;
+        /* পেজের অন্যান্য ভিউ */
+        .page-view {
+            display: none;
+            max-width: 500px;
+            margin: 0 auto;
         }
 
-        input, button { padding: 12px; margin: 8px 0; width: 100%; box-sizing: border-box; font-size: 15px; border-radius: 8px; border: 1px solid #cbd5e1; }
-        button { background-color: #2563eb; color: white; border: none; font-weight: bold; cursor: pointer; }
-        .btn-delete { background-color: #ef4444; color: white; margin-top: 8px; font-size: 13px; padding: 8px; }
-        .status-msg { font-size: 13px; color: #2563eb; font-weight: bold; margin: 5px 0; }
-        .preview-img { width: 100%; height: 160px; object-fit: cover; border-radius: 8px; margin: 10px 0; display: none; }
-        
-        .prod-item {
+        #reader {
+            width: 100%;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #ffffff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-card, .result-card {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            margin-top: 15px;
+        }
+
+        input, button {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 8px 0;
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            font-size: 15px;
+            outline: none;
+        }
+
+        button {
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        .item-list-entry {
             display: flex;
-            gap: 12px;
+            align-items: center;
             background: white;
             padding: 12px;
-            border-radius: 10px;
+            border-radius: 12px;
             margin-bottom: 10px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-            align-items: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         }
-        .prod-item img { width: 65px; height: 65px; border-radius: 8px; object-fit: cover; }
-        .prod-info { flex-grow: 1; text-align: left; }
-        .prod-info h4 { margin: 0 0 4px 0; font-size: 15px; color: #1e293b; }
-        .prod-info p { margin: 2px 0; font-size: 12px; color: #64748b; }
+
+        .item-list-entry img {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            object-fit: cover;
+            margin-right: 12px;
+        }
+
+        .item-details { flex-grow: 1; }
+        .item-details h4 { margin: 0 0 4px 0; font-size: 15px; color: #1e293b; }
+        .item-details p { margin: 2px 0; font-size: 12px; color: #64748b; }
+
+        .btn-del {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            width: auto;
+            margin: 0;
+        }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <button id="back-btn" class="back-btn" onclick="showHome()">← হোম</button>
-        <h2 id="page-title">Home</h2>
-        <div style="width: 50px;"></div>
+        <h1 id="title">Home</h1>
+        <button id="back-btn" class="back-btn" onclick="showHome()">Back</button>
     </div>
 
-    <!-- হোম মেনু গ্রিড -->
-    <div id="home-page" class="grid-container">
-        <div class="grid-card" onclick="openScanPage()">
-            <img src="https://img.icons8.com/color/96/barcode-reader.png" alt="Scan">
+    <!-- হোম পেজের অরিজিনাল ৬টি কার্ড -->
+    <div id="home-view" class="grid-container">
+        <!-- Scan Card with fixed SVG Icon -->
+        <div class="card" onclick="openScanner()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
+                <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
+                <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
+                <path d="M7 21H5a2 2 0 0 1-2-2v-2"></path>
+                <line x1="7" y1="12" x2="17" y2="12"></line>
+            </svg>
             <p>Scan</p>
         </div>
-        <div class="grid-card" onclick="openNewProductPage()">
-            <img src="https://img.icons8.com/color/96/add-product.png" alt="New product">
+
+        <div class="card" onclick="openNewProduct('')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path>
+                <line x1="12" y1="12" x2="12" y2="22"></line>
+                <line x1="12" y1="8" x2="12" y2="8.01"></line>
+                <line x1="16" y1="12" x2="16" y2="16"></line>
+                <line x1="14" y1="14" x2="18" y2="14"></line>
+            </svg>
             <p>New product</p>
         </div>
-        <div class="grid-card" onclick="openProductsPage()">
-            <img src="https://img.icons8.com/color/96/box.png" alt="Products">
+
+        <div class="card" onclick="openProductsList()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            </svg>
             <p>Products</p>
         </div>
-        <div class="grid-card" onclick="alert('শীঘ্রই আসছে!')">
-            <img src="https://img.icons8.com/color/96/combo-chart.png" alt="Statistics">
+
+        <div class="card" onclick="alert('Feature coming soon!')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
             <p>Statistics</p>
         </div>
-        <div class="grid-card" onclick="alert('শীঘ্রই আসছে!')">
-            <img src="https://img.icons8.com/color/96/data-backup.png" alt="Export / Import">
+
+        <div class="card" onclick="alert('Feature coming soon!')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
             <p>Export / Import</p>
         </div>
-        <div class="grid-card" onclick="alert('শীঘ্রই আসছে!')">
-            <img src="https://img.icons8.com/color/96/settings.png" alt="Settings">
+
+        <div class="card" onclick="alert('Feature coming soon!')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
             <p>Settings</p>
         </div>
     </div>
 
-    <!-- স্ক্যানার সেকশন -->
-    <div id="scan-page" class="page-section">
+    <!-- স্ক্যান করার ভিউ -->
+    <div id="scan-view" class="page-view">
         <div id="reader"></div>
-        <div id="scanned-result" style="display:none;" class="card">
-            <h3 style="color:#16a34a; margin-top:0;">প্রোডাক্ট পাওয়া গেছে!</h3>
-            <img id="res-img" src="" alt="প্রোডাক্ট ছবি" style="width:100%; height:180px; object-fit:cover; border-radius:8px;">
-            <h3 id="res-name" style="margin:8px 0;"></h3>
-            <p>কোম্পানি: <b id="res-brand"></b></p>
-            <p>বারকোড: <b id="res-barcode"></b></p>
-            <p>দাম: <b id="res-price" style="font-size: 18px; color: #dc2626;"></b> AED</p>
-            <button onclick="restartScanner()">আবার স্ক্যান করুন</button>
+        <div id="scan-res" class="result-card" style="display:none;">
+            <h3 style="margin-top:0; color:#16a34a;">Scanned Product</h3>
+            <img id="res-img" src="" alt="Product Image" style="width:100%; height:180px; object-fit:cover; border-radius:10px;">
+            <h3 id="res-name" style="margin: 10px 0 5px 0;"></h3>
+            <p style="margin:2px 0;">Brand: <span id="res-brand" style="font-weight:600;"></span></p>
+            <p style="margin:2px 0;">Barcode: <span id="res-code" style="font-weight:600;"></span></p>
+            <p style="margin:5px 0;">Price: <span id="res-price" style="font-weight:bold; color:#dc2626; font-size:18px;"></span> AED</p>
+            <button onclick="rescan()">Scan Again</button>
         </div>
     </div>
 
-    <!-- নতুন প্রোডাক্ট যুক্ত করার সেকশন -->
-    <div id="form-page" class="page-section">
-        <div class="card">
-            <h3 style="margin-top: 0;">প্রোডাক্ট তথ্য</h3>
-            <p>বারকোড: <b id="scanned-code">N/A</b></p>
-            <div id="fetch-status" class="status-msg"></div>
+    <!-- নতুন প্রোডাক্ট ফরম ভিউ -->
+    <div id="form-view" class="page-view">
+        <div class="form-card">
+            <p style="margin-top:0;">Barcode: <b id="bar-code-text" style="color:#2563eb;">N/A</b></p>
+            <div id="status-msg" style="font-size:13px; color:#2563eb; margin-bottom:10px;"></div>
             
-            <img id="form-img-preview" class="preview-img" src="" alt="ছবি">
-            
-            <input type="text" id="prod-name" placeholder="প্রোডাক্টের নাম">
-            <input type="text" id="prod-brand" placeholder="কোম্পানি/ব্র্যান্ডের নাম">
-            <input type="number" id="prod-price" placeholder="দাম (AED)">
-            
-            <label style="font-size:13px; color:#64748b; display:block; margin-top:5px;">ক্যামেরা দিয়ে ছবি তুলতে চাইলে:</label>
-            <input type="file" id="prod-img" accept="image/*" capture="environment">
-            
-            <button onclick="saveProduct()">সেভ করুন</button>
+            <img id="preview-image" src="" style="width:100%; height:150px; object-fit:cover; border-radius:8px; display:none; margin-bottom:10px;">
+
+            <input type="text" id="p-name" placeholder="Product Name">
+            <input type="text" id="p-brand" placeholder="Brand Name">
+            <input type="number" id="p-price" placeholder="Price (AED)">
+            <input type="file" id="p-file" accept="image/*" capture="environment">
+
+            <button onclick="saveProduct()">Save Product</button>
         </div>
     </div>
 
-    <!-- প্রোডাক্ট তালিকা সেকশন -->
-    <div id="products-page" class="page-section">
-        <div id="product-list"></div>
+    <!-- প্রোডাক্ট তালিকা ভিউ -->
+    <div id="list-view" class="page-view">
+        <div id="items-container"></div>
     </div>
 
     <script>
         let currentBarcode = "";
-        let products = JSON.parse(localStorage.getItem('my_products')) || [];
-        let html5QrcodeScanner = null;
-        let selectedImageData = "";
+        let qrScanner = null;
+        let imageBase64 = "";
 
-        function playBeepSound() {
-            try {
-                let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                let osc = audioCtx.createOscillator();
-                let gain = audioCtx.createGain();
-                osc.type = "sine";
-                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.15);
-            } catch (e) { console.log(e); }
-        }
-
-        function hideAllPages() {
-            document.getElementById('home-page').style.display = 'none';
-            document.getElementById('scan-page').style.display = 'none';
-            document.getElementById('form-page').style.display = 'none';
-            document.getElementById('products-page').style.display = 'none';
-            document.getElementById('back-btn').style.display = 'block';
-            stopScanner();
+        function hideAll() {
+            document.getElementById('home-view').style.display = 'none';
+            document.getElementById('scan-view').style.display = 'none';
+            document.getElementById('form-view').style.display = 'none';
+            document.getElementById('list-view').style.display = 'none';
+            document.getElementById('back-btn').style.display = 'inline-block';
+            stopQr();
         }
 
         function showHome() {
-            hideAllPages();
-            document.getElementById('home-page').style.display = 'grid';
+            hideAll();
+            document.getElementById('home-view').style.display = 'grid';
             document.getElementById('back-btn').style.display = 'none';
-            document.getElementById('page-title').innerText = 'Home';
+            document.getElementById('title').innerText = 'Home';
         }
 
-        function openScanPage() {
-            hideAllPages();
-            document.getElementById('scan-page').style.display = 'block';
-            document.getElementById('scanned-result').style.display = 'none';
-            document.getElementById('page-title').innerText = 'Scan Barcode';
-            startScanner();
+        function openScanner() {
+            hideAll();
+            document.getElementById('scan-view').style.display = 'block';
+            document.getElementById('scan-res').style.display = 'none';
+            document.getElementById('title').innerText = 'Scan Barcode';
+            startQr();
         }
 
-        function openNewProductPage(barcode = "") {
-            hideAllPages();
-            document.getElementById('form-page').style.display = 'block';
-            document.getElementById('page-title').innerText = 'New Product';
+        function openNewProduct(code = "") {
+            hideAll();
+            document.getElementById('form-view').style.display = 'block';
+            document.getElementById('title').innerText = 'New Product';
             resetForm();
-            
-            if(barcode) {
-                currentBarcode = barcode;
-                document.getElementById('scanned-code').innerText = barcode;
-                fetchProductOnline(barcode);
+
+            currentBarcode = String(code).trim();
+            document.getElementById('bar-code-text').innerText = currentBarcode || 'N/A';
+
+            if(currentBarcode) {
+                fetchOnlineDetails(currentBarcode);
             }
         }
 
-        function openProductsPage() {
-            hideAllPages();
-            document.getElementById('products-page').style.display = 'block';
-            document.getElementById('page-title').innerText = 'Products List';
+        function openProductsList() {
+            hideAll();
+            document.getElementById('list-view').style.display = 'block';
+            document.getElementById('title').innerText = 'Products';
             renderProducts();
         }
 
-        function startScanner() {
-            if(!html5QrcodeScanner) {
-                html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
-                html5QrcodeScanner.render(onScanSuccess);
+        function startQr() {
+            if(!qrScanner) {
+                qrScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+                qrScanner.render(onScanSuccess);
             }
         }
 
-        function stopScanner() {
-            if(html5QrcodeScanner) {
-                html5QrcodeScanner.clear().catch(error => console.error(error));
-                html5QrcodeScanner = null;
+        function stopQr() {
+            if(qrScanner) {
+                qrScanner.clear().catch(e => console.log(e));
+                qrScanner = null;
             }
         }
 
-        function restartScanner() {
-            document.getElementById('scanned-result').style.display = 'none';
-            startScanner();
+        function rescan() {
+            document.getElementById('scan-res').style.display = 'none';
+            startQr();
         }
 
-        async function onScanSuccess(decodedText) {
-            playBeepSound();
-            let scannedCode = decodedText.trim();
-            stopScanner();
+        function onScanSuccess(decodedText) {
+            let code = String(decodedText).trim();
+            stopQr();
 
-            // সেভ থাকা প্রোডাক্ট চেক করা
-            products = JSON.parse(localStorage.getItem('my_products')) || [];
-            let existingProduct = products.find(p => String(p.barcode).trim() === scannedCode);
+            let products = JSON.parse(localStorage.getItem('my_grosary_items')) || [];
+            let found = products.find(p => String(p.barcode).trim() === code);
 
-            if (existingProduct) {
-                document.getElementById('res-name').innerText = existingProduct.name;
-                document.getElementById('res-brand').innerText = existingProduct.brand || 'N/A';
-                document.getElementById('res-barcode').innerText = existingProduct.barcode;
-                document.getElementById('res-price').innerText = existingProduct.price;
-                document.getElementById('res-img').src = existingProduct.image || 'https://via.placeholder.com/150?text=No+Image';
-                document.getElementById('scanned-result').style.display = 'block';
+            if(found) {
+                document.getElementById('res-name').innerText = found.name;
+                document.getElementById('res-brand').innerText = found.brand || 'N/A';
+                document.getElementById('res-code').innerText = found.barcode;
+                document.getElementById('res-price').innerText = found.price;
+                document.getElementById('res-img').src = found.image || 'https://via.placeholder.com/150';
+                document.getElementById('scan-res').style.display = 'block';
             } else {
-                openNewProductPage(scannedCode);
+                openNewProduct(code);
             }
         }
 
-        async function fetchProductOnline(barcode) {
-            document.getElementById('fetch-status').innerText = 'অনলাইনে তথ্য খোঁজা হচ্ছে...';
+        async function fetchOnlineDetails(barcode) {
+            document.getElementById('status-msg').innerText = 'Fetching product details online...';
             try {
-                let response = await fetch(`https://world.openfoodfacts.org/api/v2/product/${barcode}.json`);
-                let data = await response.json();
-
-                if (data.status === 1 && data.product) {
-                    let pName = data.product.product_name || data.product.product_name_en || '';
-                    let pBrand = data.product.brands || '';
-                    let pImage = data.product.image_front_url || data.product.image_url || '';
-
-                    document.getElementById('prod-name').value = pName;
-                    document.getElementById('prod-brand').value = pBrand;
-
-                    if (pImage) {
-                        selectedImageData = pImage;
-                        let preview = document.getElementById('form-img-preview');
-                        preview.src = pImage;
-                        preview.style.display = 'block';
+                let res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${barcode}.json`);
+                let data = await res.json();
+                if(data.status === 1 && data.product) {
+                    let p = data.product;
+                    if(p.product_name) document.getElementById('p-name').value = p.product_name;
+                    if(p.brands) document.getElementById('p-brand').value = p.brands;
+                    if(p.image_front_url) {
+                        imageBase64 = p.image_front_url;
+                        let img = document.getElementById('preview-image');
+                        img.src = imageBase64;
+                        img.style.display = 'block';
                     }
-                    document.getElementById('fetch-status').innerText = '✓ তথ্য ও ছবি পাওয়া গেছে!';
+                    document.getElementById('status-msg').innerText = '✓ Found online info';
                 } else {
-                    document.getElementById('fetch-status').innerText = 'অনলাইনে পাওয়া যায়নি, ম্যানুয়ালি লিখুন।';
+                    document.getElementById('status-msg').innerText = 'Not found online. Enter details manually.';
                 }
-            } catch (err) {
-                document.getElementById('fetch-status').innerText = 'অনলাইনে খোঁজা সম্ভব হয়নি।';
+            } catch(e) {
+                document.getElementById('status-msg').innerText = 'Could not fetch online details.';
             }
         }
 
-        document.getElementById('prod-img').addEventListener('change', function(e) {
+        // ছবি ছোট বা রিসাইজ করার লজিক যাতে মেমোরি ফুল না হয়
+        document.getElementById('p-file').addEventListener('change', function(e) {
             let file = e.target.files[0];
-            if (file) {
+            if(file) {
                 let reader = new FileReader();
                 reader.onload = function(evt) {
-                    selectedImageData = evt.target.result;
-                    let preview = document.getElementById('form-img-preview');
-                    preview.src = selectedImageData;
-                    preview.style.display = 'block';
-                };
+                    let img = new Image();
+                    img.src = evt.target.result;
+                    img.onload = function() {
+                        let canvas = document.createElement('canvas');
+                        let ctx = canvas.getContext('2d');
+                        let maxWidth = 400;
+                        let scale = maxWidth / img.width;
+                        canvas.width = maxWidth;
+                        canvas.height = img.height * scale;
+                        
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        imageBase64 = canvas.toDataURL('image/jpeg', 0.6);
+                        
+                        let preview = document.getElementById('preview-image');
+                        preview.src = imageBase64;
+                        preview.style.display = 'block';
+                    }
+                }
                 reader.readAsDataURL(file);
             }
         });
 
         function resetForm() {
-            document.getElementById('prod-name').value = '';
-            document.getElementById('prod-brand').value = '';
-            document.getElementById('prod-price').value = '';
-            document.getElementById('prod-img').value = '';
-            document.getElementById('form-img-preview').style.display = 'none';
-            document.getElementById('fetch-status').innerText = '';
-            selectedImageData = "";
+            document.getElementById('p-name').value = '';
+            document.getElementById('p-brand').value = '';
+            document.getElementById('p-price').value = '';
+            document.getElementById('p-file').value = '';
+            document.getElementById('preview-image').style.display = 'none';
+            document.getElementById('status-msg').innerText = '';
+            imageBase64 = "";
             currentBarcode = "";
-            document.getElementById('scanned-code').innerText = 'N/A';
         }
 
         function saveProduct() {
-            let name = document.getElementById('prod-name').value;
-            let brand = document.getElementById('prod-brand').value;
-            let price = document.getElementById('prod-price').value;
+            let name = document.getElementById('p-name').value;
+            let brand = document.getElementById('p-brand').value;
+            let price = document.getElementById('p-price').value;
 
             if(!name || !price) {
-                alert("নাম ও দাম অবশ্যই দিতে হবে!");
+                alert("Please fill Name and Price!");
                 return;
             }
 
-            if(!currentBarcode || currentBarcode === "N/A") {
-                alert("সতর্কতা: স্ক্যান না করে প্রোডাক্ট সেভ করছেন, তাই এতে নির্দিষ্ট বারকোড থাকবে না। স্ক্যান করে সেভ করতে 'Scan' মেনু ব্যবহার করুন।");
-            }
-
-            let item = { 
-                barcode: currentBarcode || 'N/A', 
-                name: name, 
-                brand: brand,
-                price: price, 
-                image: selectedImageData 
-            };
+            let products = JSON.parse(localStorage.getItem('my_grosary_items')) || [];
             
-            products.push(item);
-            localStorage.setItem('my_products', JSON.stringify(products));
-            alert("প্রোডাক্ট সফলভাবে সেভ হয়েছে!");
-            showHome();
+            let item = {
+                barcode: currentBarcode || 'N/A',
+                name: name,
+                brand: brand,
+                price: price,
+                image: imageBase64
+            };
+
+            try {
+                products.push(item);
+                localStorage.setItem('my_grosary_items', JSON.stringify(products));
+                alert("Saved Successfully!");
+                showHome();
+            } catch(e) {
+                alert("Storage Full! Please delete some items from Products.");
+            }
         }
 
-        function deleteProduct(index) {
-            if (confirm("মুছে ফেলতে চান?")) {
+        function deleteItem(index) {
+            if(confirm("Delete this item?")) {
+                let products = JSON.parse(localStorage.getItem('my_grosary_items')) || [];
                 products.splice(index, 1);
-                localStorage.setItem('my_products', JSON.stringify(products));
+                localStorage.setItem('my_grosary_items', JSON.stringify(products));
                 renderProducts();
             }
         }
 
         function renderProducts() {
-            let listDiv = document.getElementById('product-list');
-            listDiv.innerHTML = '';
-            products = JSON.parse(localStorage.getItem('my_products')) || [];
+            let container = document.getElementById('items-container');
+            container.innerHTML = '';
+            let products = JSON.parse(localStorage.getItem('my_grosary_items')) || [];
 
             if(products.length === 0) {
-                listDiv.innerHTML = '<p style="color:#64748b;">কোনো প্রোডাক্ট সেভ নেই</p>';
+                container.innerHTML = '<p style="color:#64748b; text-align:center;">No saved products found.</p>';
                 return;
             }
-            products.forEach((p, index) => {
-                let imgSrc = p.image || 'https://via.placeholder.com/65?text=No+Image';
-                listDiv.innerHTML += `
-                    <div class="prod-item">
-                        <img src="${imgSrc}" alt="${p.name}">
-                        <div class="prod-info">
+
+            products.forEach((p, i) => {
+                let img = p.image || 'https://via.placeholder.com/50';
+                container.innerHTML += `
+                    <div class="item-list-entry">
+                        <img src="${img}" alt="${p.name}">
+                        <div class="item-details">
                             <h4>${p.name}</h4>
-                            <p>কোম্পানি: ${p.brand || 'N/A'}</p>
-                            <p>বারকোড: ${p.barcode}</p>
-                            <p>দাম: <b style="color:#2563eb;">${p.price} AED</b></p>
+                            <p>Brand: ${p.brand || 'N/A'}</p>
+                            <p>Barcode: <b>${p.barcode}</b></p>
+                            <p>Price: <b style="color:#2563eb;">${p.price} AED</b></p>
                         </div>
-                        <button class="btn-delete" style="width:auto;" onclick="deleteProduct(${index})">মুছুন</button>
+                        <button class="btn-del" onclick="deleteItem(${i})">Delete</button>
                     </div>
                 `;
             });
