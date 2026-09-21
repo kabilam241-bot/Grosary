@@ -464,82 +464,81 @@
         <div id="items-container"></div>
     </div>
 
+    <!-- FIREBASE INTEGRATION MODULE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { 
+            getFirestore, 
+            doc, 
+            setDoc, 
+            getDoc, 
+            deleteDoc, 
+            collection, 
+            onSnapshot 
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBEZbJoyWhMhFCuT0YlF6u0loLW_wRbJmY",
+            authDomain: "our-shop-quick-pic-73762.firebaseapp.com",
+            projectId: "our-shop-quick-pic-73762",
+            storageBucket: "our-shop-quick-pic-73762.firebasestorage.app",
+            messagingSenderId: "36313905161",
+            appId: "1:36313905161:web:44edb7687da9b7915120d8",
+            measurementId: "G-X05CC73LQ8"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const productsCol = collection(db, "products");
+
+        window.dbListCache = [];
+
+        // রিয়েল-টাইম ক্লাউড সিঙ্ক
+        onSnapshot(productsCol, (snapshot) => {
+            window.dbListCache = [];
+            snapshot.forEach((docSnap) => {
+                window.dbListCache.push(docSnap.data());
+            });
+            if (window.activePage === 'list') {
+                window.renderProducts();
+            }
+        });
+
+        window.dbSaveProduct = async function(item) {
+            let cleanCode = String(item.barcode).trim();
+            item.barcode = cleanCode;
+            await setDoc(doc(db, "products", cleanCode), item);
+            return true;
+        };
+
+        window.dbGetProduct = async function(barcode) {
+            let cleanCode = String(barcode).trim();
+            const docRef = doc(db, "products", cleanCode);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                return docSnap.data();
+            } else {
+                return null;
+            }
+        };
+
+        window.dbGetAllProducts = async function() {
+            return window.dbListCache;
+        };
+
+        window.dbDeleteProduct = async function(barcode) {
+            let cleanCode = String(barcode).trim();
+            await deleteDoc(doc(db, "products", cleanCode));
+            return true;
+        };
+    </script>
+
     <script>
         let qrScanner = null;
         let formQrScanner = null;
         let imageBase64 = "";
         let currentLang = localStorage.getItem('app_lang') || 'bn';
-        let activePage = 'home';
-
-        // --- IndexedDB নির্ভরযোগ্য লজিক ---
-        let db = null;
-
-        function initDB() {
-            return new Promise((resolve, reject) => {
-                if(db) return resolve(db);
-                const dbReq = indexedDB.open("GroceryStoreDB", 1);
-                dbReq.onupgradeneeded = function(e) {
-                    let database = e.target.result;
-                    if(!database.objectStoreNames.contains("products")) {
-                        database.createObjectStore("products", { keyPath: "barcode" });
-                    }
-                };
-                dbReq.onsuccess = function(e) {
-                    db = e.target.result;
-                    resolve(db);
-                };
-                dbReq.onerror = function(e) {
-                    reject("IndexedDB error: " + e.target.errorCode);
-                };
-            });
-        }
-
-        async function dbSaveProduct(item) {
-            let database = await initDB();
-            return new Promise((resolve, reject) => {
-                let tx = database.transaction("products", "readwrite");
-                let store = tx.objectStore("products");
-                let request = store.put(item);
-                request.onsuccess = () => resolve(true);
-                request.onerror = (e) => reject(e);
-            });
-        }
-
-        async function dbGetProduct(barcode) {
-            let database = await initDB();
-            return new Promise((resolve, reject) => {
-                let tx = database.transaction("products", "readonly");
-                let store = tx.objectStore("products");
-                let cleanCode = String(barcode).trim();
-                let request = store.get(cleanCode);
-                request.onsuccess = () => resolve(request.result);
-                request.onerror = (e) => reject(e);
-            });
-        }
-
-        async function dbGetAllProducts() {
-            let database = await initDB();
-            return new Promise((resolve, reject) => {
-                let tx = database.transaction("products", "readonly");
-                let store = tx.objectStore("products");
-                let request = store.getAll();
-                request.onsuccess = () => resolve(request.result);
-                request.onerror = (e) => reject(e);
-            });
-        }
-
-        async function dbDeleteProduct(barcode) {
-            let database = await initDB();
-            return new Promise((resolve, reject) => {
-                let tx = database.transaction("products", "readwrite");
-                let store = tx.objectStore("products");
-                let cleanCode = String(barcode).trim();
-                let request = store.delete(cleanCode);
-                request.onsuccess = () => resolve(true);
-                request.onerror = (e) => reject(e);
-            });
-        }
-        // ----------------------------------------------------
+        window.activePage = 'home';
 
         const i18n = {
             en: {
@@ -565,7 +564,7 @@
                 foundOnline: "✓ Found online info",
                 notFoundOnline: "Not found online. Enter details manually.",
                 enterManual: "Enter details manually.",
-                savedOk: "Saved Successfully!",
+                savedOk: "Saved Successfully to Cloud!",
                 storageFull: "Storage Error!",
                 deleteConfirm: "Delete this item?",
                 noProducts: "No saved products found.",
@@ -599,7 +598,7 @@
                 foundOnline: "✓ অনলাইন তথ্য পাওয়া গেছে",
                 notFoundOnline: "অনলাইনে পাওয়া যায়নি। হাতে লিখে তথ্য দিন।",
                 enterManual: "হাতে লিখে তথ্য দিন।",
-                savedOk: "সফলভাবে সেভ হয়েছে!",
+                savedOk: "সফলভাবে ক্লাউডে সেভ হয়েছে!",
                 storageFull: "সেভ করতে সমস্যা হয়েছে!",
                 deleteConfirm: "আপনি কি এটি ডিলিট করতে চান?",
                 noProducts: "কোনো সেভ করা প্রোডাক্ট পাওয়া যায়নি।",
@@ -613,7 +612,6 @@
         };
 
         window.onload = function() {
-            initDB();
             let savedPic = localStorage.getItem('user_profile_pic');
             if(savedPic) {
                 document.getElementById('user-profile-img').src = savedPic;
@@ -653,10 +651,10 @@
             document.getElementById('p-brand').placeholder = t.phBrand;
             document.getElementById('p-price').placeholder = t.phPrice;
 
-            if (activePage === 'home') document.getElementById('title').innerText = t.home;
-            else if (activePage === 'scan') document.getElementById('title').innerText = t.scanBarcode;
-            else if (activePage === 'form') document.getElementById('title').innerText = t.newProduct;
-            else if (activePage === 'list') {
+            if (window.activePage === 'home') document.getElementById('title').innerText = t.home;
+            else if (window.activePage === 'scan') document.getElementById('title').innerText = t.scanBarcode;
+            else if (window.activePage === 'form') document.getElementById('title').innerText = t.newProduct;
+            else if (window.activePage === 'list') {
                 document.getElementById('title').innerText = t.products;
                 renderProducts();
             }
@@ -699,7 +697,7 @@
 
         function showHome() {
             hideAll();
-            activePage = 'home';
+            window.activePage = 'home';
             document.getElementById('home-view').style.display = 'grid';
             document.getElementById('back-btn').style.display = 'none';
             document.getElementById('title').innerText = i18n[currentLang].home;
@@ -707,7 +705,7 @@
 
         function openScanner() {
             hideAll();
-            activePage = 'scan';
+            window.activePage = 'scan';
             document.getElementById('scan-view').style.display = 'block';
             document.getElementById('scan-res').style.display = 'none';
             document.getElementById('reader').style.display = 'block';
@@ -717,7 +715,7 @@
 
         function openNewProduct(code = "") {
             hideAll();
-            activePage = 'form';
+            window.activePage = 'form';
             document.getElementById('form-view').style.display = 'block';
             document.getElementById('title').innerText = i18n[currentLang].newProduct;
             resetForm();
@@ -730,7 +728,7 @@
 
         function openProductsList() {
             hideAll();
-            activePage = 'list';
+            window.activePage = 'list';
             document.getElementById('list-view').style.display = 'block';
             document.getElementById('title').innerText = i18n[currentLang].products;
             renderProducts();
@@ -783,7 +781,7 @@
             stopQr();
             document.getElementById('reader').style.display = 'none';
 
-            let found = await dbGetProduct(scannedCode);
+            let found = await window.dbGetProduct(scannedCode);
 
             if(found) {
                 document.getElementById('res-top-name').innerText = found.name;
@@ -919,7 +917,7 @@
             };
 
             try {
-                await dbSaveProduct(item);
+                await window.dbSaveProduct(item);
                 alert(t.savedOk);
                 showHome();
             } catch(e) {
@@ -930,7 +928,7 @@
         async function deleteItem(barcode) {
             const t = i18n[currentLang];
             if(confirm(t.deleteConfirm)) {
-                await dbDeleteProduct(barcode);
+                await window.dbDeleteProduct(barcode);
                 renderProducts();
             }
         }
@@ -940,7 +938,7 @@
             let container = document.getElementById('items-container');
             container.innerHTML = '';
             
-            let products = await dbGetAllProducts();
+            let products = await window.dbGetAllProducts();
 
             if(!products || products.length === 0) {
                 container.innerHTML = `<p style="color:#64748b; text-align:center;">${t.noProducts}</p>`;
