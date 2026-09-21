@@ -199,7 +199,7 @@
         <button id="back-btn" class="back-btn" onclick="showHome()">Back</button>
     </div>
 
-    <!-- হোম ভিউ -->
+    <!-- হোম ভিউ: শুধু ৩টি কার্ড রাখা হয়েছে -->
     <div id="home-view" class="grid-container">
         <div class="card" onclick="openScanner()">
             <img src="https://cdn-icons-png.flaticon.com/512/3483/3483015.png" alt="Scan">
@@ -215,21 +215,6 @@
             <img src="https://cdn-icons-png.flaticon.com/512/679/679821.png" alt="Products">
             <p>Products</p>
         </div>
-
-        <div class="card" onclick="alert('Feature coming soon!')">
-            <img src="https://cdn-icons-png.flaticon.com/512/4285/4285667.png" alt="Statistics">
-            <p>Statistics</p>
-        </div>
-
-        <div class="card" onclick="alert('Feature coming soon!')">
-            <img src="https://cdn-icons-png.flaticon.com/512/3062/3062631.png" alt="Export / Import">
-            <p>Export / Import</p>
-        </div>
-
-        <div class="card" onclick="alert('Feature coming soon!')">
-            <img src="https://cdn-icons-png.flaticon.com/512/2099/2099058.png" alt="Settings">
-            <p>Settings</p>
-        </div>
     </div>
 
     <!-- স্ক্যানার ভিউ -->
@@ -242,7 +227,6 @@
             <p style="margin:2px 0;">Brand: <span id="res-brand" style="font-weight:600;"></span></p>
             <p style="margin:2px 0;">Barcode: <span id="res-code" style="font-weight:600;"></span></p>
             
-            <!-- প্রাইস সেকশন বড় এবং বোল্ড করা হলো -->
             <div style="margin: 10px 0; background: #f8fafc; padding: 10px; border-radius: 8px; text-align: center;">
                 <span style="font-size: 14px; color: #64748b; display: block;">Price</span>
                 <span id="res-price" style="font-weight: 800; color: #dc2626; font-size: 26px;"></span> 
