@@ -37,7 +37,6 @@
             cursor: pointer;
         }
 
-        /* প্রোফাইল ছবি বড় করা হয়েছে */
         .profile-pic {
             width: 60px;
             height: 60px;
@@ -167,6 +166,63 @@
             }
         }
 
+        /* স্টাইলিশ রেজাল্ট সেকশন */
+        .res-title-name {
+            font-size: 24px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 15px 0 10px 0;
+            line-height: 1.3;
+            letter-spacing: -0.3px;
+        }
+
+        .res-info-box {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 12px 15px;
+            margin-bottom: 12px;
+            border: 1px solid #f1f5f9;
+        }
+
+        .res-info-item {
+            font-size: 15px;
+            color: #475569;
+            margin: 6px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .res-info-val {
+            font-weight: 700;
+            color: #1e293b;
+            font-size: 16px;
+        }
+
+        .res-price-box {
+            margin: 15px 0;
+            background: linear-gradient(135deg, #fef2f2 0%, #ffe4e6 100%);
+            padding: 16px;
+            border-radius: 14px;
+            text-align: center;
+            border: 1px solid #fecdd3;
+            box-shadow: 0 4px 12px rgba(225, 29, 72, 0.05);
+        }
+
+        .res-price-val {
+            font-weight: 900;
+            color: #dc2626;
+            font-size: 32px;
+            letter-spacing: -0.5px;
+        }
+
+        .res-price-currency {
+            font-weight: 800;
+            color: #e11d48;
+            font-size: 18px;
+            margin-left: 4px;
+        }
+
         .form-card {
             background: #ffffff;
             padding: 20px;
@@ -272,16 +328,26 @@
     <div id="scan-view" class="page-view">
         <div id="reader"></div>
         <div id="scan-res" class="result-card" style="display:none;">
-            <h3 id="lbl-found" style="margin-top:0; color:#16a34a;">Product Found!</h3>
-            <img id="res-img" src="" alt="Product Image" style="width:100%; height:180px; object-fit:cover; border-radius:10px;">
-            <h3 id="res-name" style="margin: 10px 0 5px 0;"></h3>
-            <p style="margin:2px 0;"><span id="lbl-res-brand">Brand</span>: <span id="res-brand" style="font-weight:600;"></span></p>
-            <p style="margin:2px 0;"><span id="lbl-res-code">Barcode</span>: <span id="res-code" style="font-weight:600;"></span></p>
+            <h3 id="lbl-found" style="margin-top:0; color:#16a34a; font-size: 18px;">Product Found!</h3>
+            <img id="res-img" src="" alt="Product Image" style="width:100%; height:180px; object-fit:cover; border-radius:12px;">
             
-            <div style="margin: 10px 0; background: #f8fafc; padding: 10px; border-radius: 8px; text-align: center;">
-                <span id="lbl-res-price" style="font-size: 14px; color: #64748b; display: block;">Price</span>
-                <span id="res-price" style="font-weight: 800; color: #dc2626; font-size: 26px;"></span> 
-                <span style="font-weight: 700; color: #dc2626; font-size: 18px;">AED</span>
+            <h2 id="res-name" class="res-title-name"></h2>
+            
+            <div class="res-info-box">
+                <div class="res-info-item">
+                    <span id="lbl-res-brand">Brand</span>
+                    <span id="res-brand" class="res-info-val"></span>
+                </div>
+                <div class="res-info-item" style="margin-bottom:0;">
+                    <span id="lbl-res-code">Barcode</span>
+                    <span id="res-code" class="res-info-val" style="font-family: monospace;"></span>
+                </div>
+            </div>
+            
+            <div class="res-price-box">
+                <span id="lbl-res-price" style="font-size: 13px; color: #991b1b; display: block; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Price</span>
+                <span id="res-price" class="res-price-val"></span> 
+                <span class="res-price-currency">AED</span>
             </div>
 
             <button id="lbl-scan-again" onclick="rescan()">Scan Again</button>
@@ -331,8 +397,8 @@
                 back: "Back",
                 scanBarcode: "Scan Barcode",
                 productFound: "Product Found!",
-                brand: "Brand",
-                barcode: "Barcode",
+                brand: "Brand:",
+                barcode: "Barcode:",
                 price: "Price",
                 scanAgain: "Scan Again",
                 scanToFill: "📷 Scan Barcode to Fill",
@@ -363,8 +429,8 @@
                 back: "ফিরে যান",
                 scanBarcode: "বারকোড স্ক্যান করুন",
                 productFound: "প্রোডাক্ট পাওয়া গেছে!",
-                brand: "ব্র্যান্ড",
-                barcode: "বারকোড",
+                brand: "ব্র্যান্ড:",
+                barcode: "বারকোড:",
                 price: "মূল্য",
                 scanAgain: "আবার স্ক্যান করুন",
                 scanToFill: "📷 তথ্য পূরণের জন্য বারকোড স্ক্যান করুন",
@@ -707,8 +773,8 @@
                         <img src="${img}" alt="${p.name}">
                         <div class="item-details">
                             <h4>${p.name}</h4>
-                            <p>${t.brand}: ${p.brand || t.na}</p>
-                            <p>${t.barcode}: <b>${p.barcode}</b></p>
+                            <p>${t.brand} ${p.brand || t.na}</p>
+                            <p>${t.barcode} <b>${p.barcode}</b></p>
                             <p>${t.price}: <b style="color:#2563eb;">${p.price} AED</b></p>
                         </div>
                         <button class="btn-del" onclick="deleteItem(${i})">${t.delete}</button>
