@@ -37,13 +37,19 @@
             cursor: pointer;
         }
 
+        /* প্রোফাইল ছবি বড় করা হয়েছে */
         .profile-pic {
-            width: 48px;
-            height: 48px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             object-fit: cover;
-            border: 2px solid #2563eb;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 3px solid #2563eb;
+            box-shadow: 0 3px 10px rgba(37, 99, 235, 0.2);
+            transition: transform 0.2s ease;
+        }
+
+        .profile-pic:active {
+            transform: scale(0.95);
         }
 
         .header h1 {
