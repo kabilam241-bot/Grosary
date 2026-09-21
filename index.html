@@ -19,15 +19,35 @@
         }
 
         .header {
-            margin-bottom: 25px;
-            padding-left: 5px;
+            margin-bottom: 20px;
+            padding: 0 5px;
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
 
+        .header-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .profile-pic-container {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .profile-pic {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #2563eb;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
         .header h1 {
-            font-size: 26px;
+            font-size: 22px;
             font-weight: 700;
             margin: 0;
             color: #1e293b;
@@ -44,12 +64,12 @@
             display: none;
         }
 
-        /* কার্ডের মূল গ্রিড লেআউট */
+        /* অরিজিনাল কার্ড গ্রিড */
         .grid-container {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 16px;
-            max-width: 500px;
+            max-width: 450px;
             margin: 0 auto;
         }
 
@@ -58,21 +78,21 @@
             border-radius: 20px;
             padding: 25px 15px;
             text-align: center;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: transform 0.15s ease;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            border: 1px solid #f1f5f9;
+            border: 1px solid #ffffff;
         }
 
         .card:active {
             transform: scale(0.96);
         }
 
-        .card img, .card svg {
+        .card img {
             width: 48px;
             height: 48px;
             margin-bottom: 12px;
@@ -86,10 +106,10 @@
             color: #334155;
         }
 
-        /* পেজের অন্যান্য ভিউ */
+        /* পেজ ভিউ */
         .page-view {
             display: none;
-            max-width: 500px;
+            max-width: 450px;
             margin: 0 auto;
         }
 
@@ -98,14 +118,14 @@
             border-radius: 16px;
             overflow: hidden;
             background: #ffffff;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
         }
 
         .form-card, .result-card {
             background: #ffffff;
             padding: 20px;
             border-radius: 16px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
             margin-top: 15px;
         }
 
@@ -135,7 +155,7 @@
             padding: 12px;
             border-radius: 12px;
             margin-bottom: 10px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
         }
 
         .item-list-entry img {
@@ -165,65 +185,52 @@
 <body>
 
     <div class="header">
-        <h1 id="title">Home</h1>
+        <div class="header-user">
+            <!-- প্রোফাইল ছবি যুক্ত করার অংশ -->
+            <div class="profile-pic-container" onclick="document.getElementById('user-pic-file').click();">
+                <img id="user-profile-img" class="profile-pic" src="https://via.placeholder.com/150" alt="Profile">
+                <input type="file" id="user-pic-file" accept="image/*" style="display:none;">
+            </div>
+            <h1 id="title">Home</h1>
+        </div>
         <button id="back-btn" class="back-btn" onclick="showHome()">Back</button>
     </div>
 
-    <!-- হোম পেজের অরিজিনাল ৬টি কার্ড -->
+    <!-- হোম পেজের কার্ডসমূহ -->
     <div id="home-view" class="grid-container">
-        <!-- Scan Card with fixed SVG Icon -->
+        <!-- ১. Scan -->
         <div class="card" onclick="openScanner()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
-                <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
-                <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
-                <path d="M7 21H5a2 2 0 0 1-2-2v-2"></path>
-                <line x1="7" y1="12" x2="17" y2="12"></line>
-            </svg>
+            <img src="https://cdn-icons-png.flaticon.com/512/3483/3483015.png" alt="Scan">
             <p>Scan</p>
         </div>
 
+        <!-- ২. New product -->
         <div class="card" onclick="openNewProduct('')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path>
-                <line x1="12" y1="12" x2="12" y2="22"></line>
-                <line x1="12" y1="8" x2="12" y2="8.01"></line>
-                <line x1="16" y1="12" x2="16" y2="16"></line>
-                <line x1="14" y1="14" x2="18" y2="14"></line>
-            </svg>
+            <img src="https://cdn-icons-png.flaticon.com/512/6831/6831000.png" alt="New product">
             <p>New product</p>
         </div>
 
+        <!-- ৩. Products -->
         <div class="card" onclick="openProductsList()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-            </svg>
+            <img src="https://cdn-icons-png.flaticon.com/512/679/679821.png" alt="Products">
             <p>Products</p>
         </div>
 
+        <!-- ৪. Statistics -->
         <div class="card" onclick="alert('Feature coming soon!')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="20" x2="18" y2="10"></line>
-                <line x1="12" y1="20" x2="12" y2="4"></line>
-                <line x1="6" y1="20" x2="6" y2="14"></line>
-            </svg>
+            <img src="https://cdn-icons-png.flaticon.com/512/4285/4285667.png" alt="Statistics">
             <p>Statistics</p>
         </div>
 
+        <!-- ৫. Export / Import -->
         <div class="card" onclick="alert('Feature coming soon!')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="17 8 12 3 7 8"></polyline>
-                <line x1="12" y1="3" x2="12" y2="15"></line>
-            </svg>
+            <img src="https://cdn-icons-png.flaticon.com/512/3062/3062631.png" alt="Export / Import">
             <p>Export / Import</p>
         </div>
 
+        <!-- ৬. Settings -->
         <div class="card" onclick="alert('Feature coming soon!')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="3"></circle>
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-            </svg>
+            <img src="https://cdn-icons-png.flaticon.com/512/2099/2099058.png" alt="Settings">
             <p>Settings</p>
         </div>
     </div>
@@ -242,7 +249,7 @@
         </div>
     </div>
 
-    <!-- নতুন প্রোডাক্ট ফরম ভিউ -->
+    <!-- নতুন প্রোডাক্ট ফর্ম ভিউ -->
     <div id="form-view" class="page-view">
         <div class="form-card">
             <p style="margin-top:0;">Barcode: <b id="bar-code-text" style="color:#2563eb;">N/A</b></p>
@@ -268,6 +275,42 @@
         let currentBarcode = "";
         let qrScanner = null;
         let imageBase64 = "";
+
+        // প্রোফাইল পিকচার সেভ এবং লোড করার লজিক
+        window.onload = function() {
+            let savedPic = localStorage.getItem('user_profile_pic');
+            if(savedPic) {
+                document.getElementById('user-profile-img').src = savedPic;
+            }
+        };
+
+        document.getElementById('user-pic-file').addEventListener('change', function(e) {
+            let file = e.target.files[0];
+            if(file) {
+                let reader = new FileReader();
+                reader.onload = function(evt) {
+                    let userImg = evt.target.result;
+                    document.getElementById('user-profile-img').src = userImg;
+                    localStorage.setItem('user_profile_pic', userImg);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function playBeep() {
+            try {
+                let ctx = new (window.AudioContext || window.webkitAudioContext)();
+                let osc = ctx.createOscillator();
+                let gain = ctx.createGain();
+                osc.type = "sine";
+                osc.frequency.setValueAtTime(800, ctx.currentTime);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.15);
+            } catch (e) {}
+        }
 
         function hideAll() {
             document.getElementById('home-view').style.display = 'none';
@@ -334,6 +377,7 @@
         }
 
         function onScanSuccess(decodedText) {
+            playBeep();
             let code = String(decodedText).trim();
             stopQr();
 
@@ -376,7 +420,6 @@
             }
         }
 
-        // ছবি ছোট বা রিসাইজ করার লজিক যাতে মেমোরি ফুল না হয়
         document.getElementById('p-file').addEventListener('change', function(e) {
             let file = e.target.files[0];
             if(file) {
