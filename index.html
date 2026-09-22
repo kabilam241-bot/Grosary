@@ -6,6 +6,78 @@
     <title>Grocery Inventory</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
+        /* Auth Screen Styling */
+        #auth-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #f6f8fc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999999;
+        }
+
+        .auth-card-box {
+            background: #ffffff;
+            padding: 30px 24px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            width: 85%;
+            max-width: 340px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        .auth-card-box h3 {
+            font-size: 20px;
+            color: #1e293b;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .auth-card-box p {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 20px;
+        }
+
+        .auth-card-box input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 16px;
+            outline: none;
+            box-sizing: border-box;
+            margin-bottom: 12px;
+        }
+
+        .auth-card-box input:focus {
+            border-color: #059669;
+        }
+
+        .auth-card-box button {
+            width: 100%;
+            padding: 12px;
+            background-color: #059669;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .auth-error {
+            color: #ef4444;
+            font-size: 13px;
+            margin-top: 10px;
+            display: none;
+        }
+
         * {
             box-sizing: border-box;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -345,6 +417,17 @@
 </head>
 <body>
 
+    <!-- লগইন পাসওয়ার্ড স্ক্রিন -->
+    <div id="auth-overlay">
+        <div class="auth-card-box">
+            <h3>পাসওয়ার্ড দিন</h3>
+            <p>অ্যাপ ব্যবহার করতে পাসওয়ার্ড প্রবেশ করান</p>
+            <input type="password" id="app-pass-input" placeholder="পাসওয়ার্ড লিখুন">
+            <button onclick="checkAppPassword()">লগইন করুন</button>
+            <p id="pass-err" class="auth-error">ভুল পাসওয়ার্ড!</p>
+        </div>
+    </div>
+
     <div class="header">
         <div class="header-user">
             <div class="profile-pic-container" onclick="document.getElementById('user-pic-file').click();">
@@ -534,6 +617,18 @@
     </script>
 
     <script>
+        // পাসওয়ার্ড চেকিং ফাংশন
+        function checkAppPassword() {
+            const inputPass = document.getElementById("app-pass-input").value;
+            const myPassword = "1234"; // 👈 আপনার পছন্দের পাসওয়ার্ডটি এখানে দিন (ডিফল্ট: 1234)
+
+            if (inputPass === myPassword) {
+                document.getElementById("auth-overlay").style.display = "none";
+            } else {
+                document.getElementById("pass-err").style.display = "block";
+            }
+        }
+
         let qrScanner = null;
         let formQrScanner = null;
         let imageBase64 = "";
