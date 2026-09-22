@@ -429,6 +429,23 @@
         .item-details h4 { margin: 0 0 4px 0; font-size: 15px; color: #1e293b; }
         .item-details p { margin: 2px 0; font-size: 12px; color: #64748b; }
 
+        .btn-action-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .btn-edit {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            width: auto;
+            margin: 0;
+        }
+
         .btn-del {
             background: #ef4444;
             color: white;
@@ -438,6 +455,16 @@
             font-size: 12px;
             width: auto;
             margin: 0;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            border: 1px solid #cbd5e1;
+            font-size: 14px;
+            background: #ffffff;
         }
     </style>
 </head>
@@ -585,6 +612,7 @@
 
     <!-- প্রোডাক্ট তালিকা -->
     <div id="list-view" class="page-view">
+        <input type="text" id="search-input" class="search-box" placeholder="খুঁজুন..." oninput="renderProducts()">
         <div id="items-container"></div>
     </div>
 
@@ -618,7 +646,7 @@
         window.dbListCache = [];
         window.currentPassword = "1234";
         
-        // আপনার গোপনীয় এডমিন পিন (Admin PIN)
+        // এডমিন পিন
         window.adminPin = "7788"; 
 
         // রিয়েল-টাইমে ফায়ারবেস থেকে লোগো ও পাসওয়ার্ড সিঙ্ক করা
@@ -697,13 +725,16 @@
             }
         }
 
-        // লোগো চেঞ্জ করার আগে এডমিন সিকিউরিটি ভেরিফিকেশন
+        // লোগো চেঞ্জ করার সময় পিন চেক করে সরাসরি গ্যালারি খোলা
         function handleProfilePicClick() {
             let pinInput = prompt("লোগো পরিবর্তন করতে এডমিন পিন (Admin PIN) প্রবেশ করান:");
             if (pinInput === window.adminPin) {
-                document.getElementById('user-pic-file').click();
+                // পিন সঠিক হলে ফাইল ইনপুট ট্রিগার করবে
+                setTimeout(() => {
+                    document.getElementById('user-pic-file').click();
+                }, 100);
             } else if (pinInput !== null) {
-                alert("ভুল এডমিন পিন! আপনি লোগো পরিবর্তন করতে পারবেন না।");
+                alert("ভুল এডমিন পিন!");
             }
         }
 
@@ -796,6 +827,8 @@
                 deleteConfirm: "Delete this item?",
                 noProducts: "No saved products found.",
                 delete: "Delete",
+                edit: "Edit",
+                searchPh: "Search products...",
                 phBarcode: "Scan or enter Barcode",
                 phName: "Product Name",
                 phSize: "Size (e.g. 1.5 Liter)",
@@ -830,6 +863,8 @@
                 deleteConfirm: "আপনি কি এটি ডিলিট করতে চান?",
                 noProducts: "কোনো সেভ করা প্রোডাক্ট পাওয়া যায়নি।",
                 delete: "ডিলিট",
+                edit: "এডিট",
+                searchPh: "প্রোডাক্ট খুঁজুন...",
                 phBarcode: "বারকোড স্ক্যান বা লিখুন",
                 phName: "প্রোডাক্টের নাম",
                 phSize: "সাইজ (যেমন: ১.৫ লিটার)",
@@ -873,6 +908,7 @@
             document.getElementById('p-size').placeholder = t.phSize;
             document.getElementById('p-brand').placeholder = t.phBrand;
             document.getElementById('p-price').placeholder = t.phPrice;
+            document.getElementById('search-input').placeholder = t.searchPh;
 
             if (window.activePage === 'home') document.getElementById('title').innerText = t.home;
             else if (window.activePage === 'scan') document.getElementById('title').innerText = t.scanBarcode;
@@ -883,7 +919,7 @@
             }
         }
 
-        // ছবি আপলোড হলে তা ক্লাউডে জমা রাখার ফাংশন
+        // ছবি সিলেক্ট হলে সঙ্গে সঙ্গে স্ক্রিনে দেখানো এবং ফায়ারবেসে সেভ করা
         document.getElementById('user-pic-file').addEventListener('change', function(e) {
             let file = e.target.files[0];
             if(file) {
@@ -1151,6 +1187,23 @@
             }
         }
 
+        async function editItem(barcode) {
+            let item = await window.dbGetProduct(barcode);
+            if(item) {
+                openNewProduct();
+                document.getElementById('p-barcode').value = item.barcode;
+                document.getElementById('p-name').value = item.name || '';
+                document.getElementById('p-size').value = item.size || '';
+                document.getElementById('p-brand').value = item.brand || '';
+                document.getElementById('p-price').value = item.price || '';
+                if(item.image) {
+                    imageBase64 = item.image;
+                    document.getElementById('preview-image').src = imageBase64;
+                    document.getElementById('preview-box').style.display = 'flex';
+                }
+            }
+        }
+
         async function deleteItem(barcode) {
             const t = i18n[currentLang];
             if(confirm(t.deleteConfirm)) {
@@ -1162,6 +1215,7 @@
         async function renderProducts() {
             const t = i18n[currentLang];
             let container = document.getElementById('items-container');
+            let query = document.getElementById('search-input').value.toLowerCase().trim();
             container.innerHTML = '';
             
             let products = await window.dbGetAllProducts();
@@ -1171,7 +1225,18 @@
                 return;
             }
 
-            products.forEach((p) => {
+            let filtered = products.filter(p => 
+                (p.name && p.name.toLowerCase().includes(query)) ||
+                (p.barcode && p.barcode.toLowerCase().includes(query)) ||
+                (p.brand && p.brand.toLowerCase().includes(query))
+            );
+
+            if(filtered.length === 0) {
+                container.innerHTML = `<p style="color:#64748b; text-align:center;">${t.noProducts}</p>`;
+                return;
+            }
+
+            filtered.forEach((p) => {
                 let img = p.image || 'https://via.placeholder.com/50';
                 container.innerHTML += `
                     <div class="item-list-entry">
@@ -1182,7 +1247,10 @@
                             <p>${t.barcode}: <b>${p.barcode}</b></p>
                             <p>${t.priceTag} <b style="color:#059669;">${p.price} AED</b></p>
                         </div>
-                        <button class="btn-del" onclick="deleteItem('${p.barcode}')">${t.delete}</button>
+                        <div class="btn-action-group">
+                            <button class="btn-edit" onclick="editItem('${p.barcode}')">${t.edit}</button>
+                            <button class="btn-del" onclick="deleteItem('${p.barcode}')">${t.delete}</button>
+                        </div>
                     </div>
                 `;
             });
