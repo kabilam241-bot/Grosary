@@ -7,7 +7,7 @@
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         /* Auth Screen & Change Pass Modal Styling */
-        #auth-overlay, #pass-change-modal {
+        #auth-overlay, #pass-change-modal, #logo-pin-modal {
             position: fixed;
             top: 0;
             left: 0;
@@ -20,7 +20,7 @@
             z-index: 999999;
         }
 
-        #pass-change-modal {
+        #pass-change-modal, #logo-pin-modal {
             background: rgba(15, 23, 42, 0.6);
             display: none;
         }
@@ -481,6 +481,18 @@
         </div>
     </div>
 
+    <!-- লোগো পিন ভ্যালিডেশন কাস্টম মোডাল -->
+    <div id="logo-pin-modal">
+        <div class="auth-card-box">
+            <h3>এডমিন পিন দিন</h3>
+            <p>লোগো পরিবর্তন করতে এডমিন পিন দিন</p>
+            <input type="password" id="logo-pin-input" placeholder="এডমিন পিন (Admin PIN)">
+            <button onclick="verifyLogoPin()">ঠিক আছে</button>
+            <button class="btn-cancel" onclick="closeLogoPinModal()">বাতিল</button>
+            <p id="logo-pin-err" class="auth-error">ভুল এডমিন পিন!</p>
+        </div>
+    </div>
+
     <!-- পাসওয়ার্ড পরিবর্তন করার এডমিন মোডাল -->
     <div id="pass-change-modal">
         <div class="auth-card-box">
@@ -497,7 +509,7 @@
 
     <div class="header">
         <div class="header-user">
-            <div class="profile-pic-container" onclick="handleProfilePicClick();">
+            <div class="profile-pic-container" onclick="openLogoPinModal();">
                 <img id="user-profile-img" class="profile-pic" src="https://via.placeholder.com/150" alt="Profile">
                 <input type="file" id="user-pic-file" accept="image/*" style="display:none;">
             </div>
@@ -725,16 +737,25 @@
             }
         }
 
-        // লোগো চেঞ্জ করার সময় পিন চেক করে সরাসরি গ্যালারি খোলা
-        function handleProfilePicClick() {
-            let pinInput = prompt("লোগো পরিবর্তন করতে এডমিন পিন (Admin PIN) প্রবেশ করান:");
-            if (pinInput === window.adminPin) {
-                // পিন সঠিক হলে ফাইল ইনপুট ট্রিগার করবে
-                setTimeout(() => {
-                    document.getElementById('user-pic-file').click();
-                }, 100);
-            } else if (pinInput !== null) {
-                alert("ভুল এডমিন পিন!");
+        // লোগো পিন মোডাল কন্ট্রোল
+        function openLogoPinModal() {
+            document.getElementById("logo-pin-modal").style.display = "flex";
+            document.getElementById("logo-pin-input").value = "";
+            document.getElementById("logo-pin-err").style.display = "none";
+        }
+
+        function closeLogoPinModal() {
+            document.getElementById("logo-pin-modal").style.display = "none";
+        }
+
+        function verifyLogoPin() {
+            const enteredPin = document.getElementById("logo-pin-input").value;
+            if (enteredPin === window.adminPin) {
+                closeLogoPinModal();
+                // পিন সঠিক হলে ফাইল ইনপুট ট্রিগার হয়ে গ্যালারি খুলবে
+                document.getElementById('user-pic-file').click();
+            } else {
+                document.getElementById("logo-pin-err").style.display = "block";
             }
         }
 
