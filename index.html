@@ -244,12 +244,14 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
         }
 
+        /* ---------------- NEW SCAN RESULT DESIGN STYLES ---------------- */
         .scan-result-wrapper {
             background: #ffffff;
-            border-radius: 20px;
+            border-radius: 24px;
             padding: 20px;
             margin-top: 15px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            border: 1px solid #e2e8f0;
             animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
 
@@ -258,24 +260,52 @@
             100% { opacity: 1; transform: scale(1); }
         }
 
+        /* Top Supermarket Header Banner */
+        .store-header-banner {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f8fafc;
+            padding: 10px 14px;
+            border-radius: 14px;
+            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 16px;
+        }
+
+        .store-logo-img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid #059669;
+        }
+
+        .store-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
         .top-product-sec {
             display: flex;
             align-items: center;
-            gap: 16px;
-            margin-bottom: 20px;
+            gap: 14px;
+            margin-bottom: 16px;
         }
 
         .img-container-box {
-            width: 130px;
-            height: 160px;
+            width: 120px;
+            height: 140px;
             background-color: #ffffff;
-            border-radius: 14px;
+            border-radius: 16px;
             padding: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 1px solid #f1f5f9;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
             flex-shrink: 0;
         }
 
@@ -294,44 +324,48 @@
         }
 
         .product-main-title {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 800;
             color: #0f172a;
-            margin: 0 0 4px 0;
+            margin: 0 0 10px 0;
             line-height: 1.25;
         }
 
-        .product-sub-title {
-            font-size: 14px;
-            color: #64748b;
-            margin: 0 0 12px 0;
-            font-weight: 500;
+        /* Large Prominent Price Display Box */
+        .price-box-wrapper {
+            background: #f0fdf4;
+            border: 2px dashed #059669;
+            border-radius: 14px;
+            padding: 8px 12px;
+            text-align: center;
         }
 
-        .price-badge {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
-            color: #ffffff;
-            padding: 8px 16px;
-            border-radius: 25px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 15px;
+        .price-box-label {
+            font-size: 11px;
             font-weight: 700;
-            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
+            color: #047857;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+
+        .price-box-value {
+            font-size: 26px; /* বড় সাইজ ফ্রন্ট */
+            font-weight: 900;
+            color: #059669;
+            line-height: 1.1;
         }
 
         .details-card-box {
-            background: #f0fdf4;
+            background: #f8fafc;
             border-radius: 16px;
-            padding: 8px 16px;
-            border: 1px solid #dcfce7;
+            padding: 6px 16px;
+            border: 1px solid #f1f5f9;
         }
 
         .detail-row {
             display: flex;
-            align-items: flex-start;
-            gap: 14px;
+            align-items: center;
+            gap: 12px;
             padding: 10px 0;
             border-bottom: 1px dashed #cbd5e1;
         }
@@ -341,35 +375,60 @@
         }
 
         .detail-icon {
-            width: 32px;
-            height: 32px;
-            background: #dcfce7;
+            width: 30px;
+            height: 30px;
+            background: #e2e8f0;
             border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
+            font-size: 15px;
             flex-shrink: 0;
-            margin-top: 2px;
         }
 
         .detail-content {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
         }
 
         .detail-label {
-            font-size: 12px;
+            font-size: 13px;
             color: #64748b;
-            margin-bottom: 2px;
-            font-weight: 500;
+            font-weight: 600;
         }
 
         .detail-value {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 700;
             color: #0f172a;
+            text-align: right;
         }
+
+        /* Developer Footer Credit */
+        .dev-credit-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 14px;
+            padding-top: 10px;
+            border-top: 1px solid #f1f5f9;
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .dev-credit-box span {
+            background: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 50%;
+            font-size: 10px;
+        }
+
+        /* ------------------------------------------------------------- */
 
         .form-card {
             background: #ffffff;
@@ -540,27 +599,35 @@
         </div>
     </div>
 
-    <!-- স্ক্যানার ভিউ -->
+    <!-- স্ক্যানার ভিউ (আকাঙ্ক্ষিত লেআউটে সাজানো) -->
     <div id="scan-view" class="page-view">
         <div id="reader"></div>
         <div id="scan-res" class="scan-result-wrapper" style="display:none;">
+            
+            <!-- সুপারমার্কেটের হেডার বর্ডার -->
+            <div class="store-header-banner">
+                <img id="res-store-logo" class="store-logo-img" src="https://via.placeholder.com/150" alt="Quick Pick Logo">
+                <div class="store-title">QUICK PICK SUPERMARKET</div>
+            </div>
+
+            <!-- প্রোডাক্ট ছবি এবং বড় প্রাইস বক্স -->
             <div class="top-product-sec">
                 <div class="img-container-box">
                     <img id="res-img" class="product-main-img" src="" alt="Product">
                 </div>
                 <div class="top-product-info">
                     <h2 id="res-top-name" class="product-main-title"></h2>
-                    <div id="res-top-size" class="product-sub-title"></div>
-                    <div class="price-badge">
-                        <span id="lbl-price-tag">দাম:</span>
-                        <span id="res-price"></span> AED
+                    <div class="price-box-wrapper">
+                        <div id="lbl-price-tag" class="price-box-label">মূল্য / PRICE</div>
+                        <div class="price-box-value"><span id="res-price"></span> AED</div>
                     </div>
                 </div>
             </div>
 
+            <!-- বিস্তারিত ডাটা রো -->
             <div class="details-card-box">
                 <div class="detail-row">
-                    <div class="detail-icon">🧪</div>
+                    <div class="detail-icon">📦</div>
                     <div class="detail-content">
                         <span id="lbl-detail-pname" class="detail-label">পণ্যের নাম</span>
                         <span id="res-name" class="detail-value"></span>
@@ -568,7 +635,7 @@
                 </div>
 
                 <div class="detail-row">
-                    <div class="detail-icon">🛢️</div>
+                    <div class="detail-icon">📏</div>
                     <div class="detail-content">
                         <span id="lbl-detail-psize" class="detail-label">সাইজ</span>
                         <span id="res-size" class="detail-value"></span>
@@ -578,13 +645,13 @@
                 <div class="detail-row">
                     <div class="detail-icon">📊</div>
                     <div class="detail-content">
-                        <span id="lbl-detail-pcode" class="detail-label">বারকোড (EAN)</span>
+                        <span id="lbl-detail-pcode" class="detail-label">বারকোড</span>
                         <span id="res-code" class="detail-value" style="font-family: monospace;"></span>
                     </div>
                 </div>
 
                 <div class="detail-row">
-                    <div class="detail-icon">🛍️</div>
+                    <div class="detail-icon">🏷️</div>
                     <div class="detail-content">
                         <span id="lbl-detail-pbrand" class="detail-label">ব্র্যান্ড</span>
                         <span id="res-brand" class="detail-value"></span>
@@ -592,7 +659,12 @@
                 </div>
             </div>
 
-            <button id="lbl-scan-again" style="margin-top: 18px;" onclick="rescan()">আবার স্ক্যান করুন</button>
+            <button id="lbl-scan-again" style="margin-top: 18px;" onclick="rescan()">📸 আবার স্ক্যান করুন</button>
+
+            <!-- ডেভেলপার ক্রেডিট -->
+            <div class="dev-credit-box">
+                <span>👤</span> Developed by Mohammad Emon
+            </div>
         </div>
     </div>
 
@@ -668,6 +740,7 @@
                 if (data.password) window.currentPassword = data.password;
                 if (data.profilePic) {
                     document.getElementById('user-profile-img').src = data.profilePic;
+                    document.getElementById('res-store-logo').src = data.profilePic;
                 }
             }
         });
@@ -828,11 +901,11 @@
                 back: "Back",
                 scanBarcode: "Scan Barcode",
                 brand: "Brand",
-                barcode: "Barcode (EAN)",
-                priceTag: "Price:",
+                barcode: "Barcode",
+                priceTag: "PRICE",
                 pname: "Product Name",
                 psize: "Size",
-                scanAgain: "Scan Again",
+                scanAgain: "📸 Scan Again",
                 scanToFill: "📷 Scan Barcode to Fill",
                 barcodeNum: "Barcode Number:",
                 productDetails: "Product Details:",
@@ -864,11 +937,11 @@
                 back: "ফিরে যান",
                 scanBarcode: "বারকোড স্ক্যান করুন",
                 brand: "ব্র্যান্ড",
-                barcode: "বারকোড (EAN)",
-                priceTag: "দাম:",
+                barcode: "বারকোড",
+                priceTag: "মূল্য / PRICE",
                 pname: "পণ্যের নাম",
                 psize: "সাইজ",
-                scanAgain: "আবার স্ক্যান করুন",
+                scanAgain: "📸 আবার স্ক্যান করুন",
                 scanToFill: "📷 তথ্য পূরণের জন্য বারকোড স্ক্যান করুন",
                 barcodeNum: "বারকোড নম্বর:",
                 productDetails: "প্রোডাক্টের বিবরণ:",
@@ -946,6 +1019,7 @@
             if(file) {
                 compressImage(file, 200, 0.7, function(compressedBase64) {
                     document.getElementById('user-profile-img').src = compressedBase64;
+                    document.getElementById('res-store-logo').src = compressedBase64;
                     if (window.dbSetProfilePic) {
                         window.dbSetProfilePic(compressedBase64);
                     }
@@ -1068,7 +1142,6 @@
 
             if(found) {
                 document.getElementById('res-top-name').innerText = found.name;
-                document.getElementById('res-top-size').innerText = found.size || '';
                 
                 document.getElementById('res-name').innerText = found.name;
                 document.getElementById('res-size').innerText = found.size || i18n[currentLang].na;
