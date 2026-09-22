@@ -458,8 +458,9 @@
     <div id="pass-change-modal">
         <div class="auth-card-box">
             <h3>পাসওয়ার্ড পরিবর্তন</h3>
-            <p>নতুন পাসওয়ার্ড সেট করুন</p>
+            <p>নতুন পাসওয়ার্ড সেট করতে গোপন এডমিন পিন দিন</p>
             <input type="password" id="old-pass-input" placeholder="বর্তমান পাসওয়ার্ড">
+            <input type="password" id="admin-pin-input" placeholder="গোপন এডমিন পিন (Master PIN)">
             <input type="password" id="new-pass-input" placeholder="নতুন পাসওয়ার্ড">
             <button onclick="updateAppPassword()">সেভ করুন</button>
             <button class="btn-cancel" onclick="closeChangePassModal()">বাতিল</button>
@@ -617,6 +618,7 @@
 
         window.dbListCache = [];
         window.currentPassword = "1234"; // ডিফল্ট পাসওয়ার্ড
+        window.adminPin = "7788"; // 🔒 শুধু আপনার ব্যবহারের জন্য গোপন এডমিন পিন
 
         // রিয়েল-টাইম সেটিংস ও পাসওয়ার্ড সিঙ্ক
         onSnapshot(doc(db, "settings", "app_config"), (docSnap) => {
@@ -698,6 +700,7 @@
         function openChangePassModal() {
             document.getElementById("pass-change-modal").style.display = "flex";
             document.getElementById("old-pass-input").value = "";
+            document.getElementById("admin-pin-input").value = "";
             document.getElementById("new-pass-input").value = "";
             document.getElementById("change-pass-msg").style.display = "none";
         }
@@ -708,11 +711,19 @@
 
         async function updateAppPassword() {
             const oldPass = document.getElementById("old-pass-input").value;
+            const enteredPin = document.getElementById("admin-pin-input").value;
             const newPass = document.getElementById("new-pass-input").value;
             const msgBox = document.getElementById("change-pass-msg");
 
             if (oldPass !== window.currentPassword) {
                 msgBox.innerText = "বর্তমান পাসওয়ার্ড ভুল!";
+                msgBox.style.color = "#ef4444";
+                msgBox.style.display = "block";
+                return;
+            }
+
+            if (enteredPin !== window.adminPin) {
+                msgBox.innerText = "ভুল এডমিন পিন! পাসওয়ার্ড পরিবর্তনের অনুমতি নেই।";
                 msgBox.style.color = "#ef4444";
                 msgBox.style.display = "block";
                 return;
