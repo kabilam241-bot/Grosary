@@ -3,315 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grocery Inventory & Management</title>
+    <title>Grocery Inventory</title>
     <style>
         :root {
-            --primary-color: #2e7d32;
-            --primary-dark: #1b5e20;
-            --accent-color: #fbc02d;
-            --bg-color: #f4f6f8;
+            --primary: #4f46e5;
+            --bg: #f8fafc;
             --card-bg: #ffffff;
-            --text-color: #333333;
-            --danger-color: #d32f2f;
+            --text: #1e293b;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            padding-bottom: 30px;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { background: var(--bg); color: var(--text); padding-bottom: 30px; }
 
         /* Auth Screen */
         #auth-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0,0,0,0.85);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(15, 23, 42, 0.9); display: flex; justify-content: center; align-items: center; z-index: 9999;
         }
+        .auth-card { background: #fff; padding: 25px; border-radius: 16px; width: 90%; max-width: 360px; text-align: center; }
+        .auth-card input { width: 100%; padding: 12px; margin: 12px 0; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; }
+        .auth-card button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
-        .auth-card {
-            background: #fff;
-            padding: 25px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 380px;
-            text-align: center;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-        }
+        /* App Header */
+        header { padding: 20px; display: flex; justify-content: space-between; align-items: center; background: #fff; border-bottom: 1px solid #e2e8f0; }
+        h1.title { font-size: 24px; font-weight: bold; }
+        .profile-pic { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; cursor: pointer; border: 2px solid var(--primary); }
 
-        .auth-card h2 {
-            margin-bottom: 15px;
-            color: var(--primary-color);
-        }
+        .container { max-width: 500px; margin: 20px auto; padding: 0 15px; }
 
-        .auth-card input {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 16px;
-        }
+        /* Home Dashboard Buttons */
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .dash-card { background: #fff; padding: 25px 15px; border-radius: 16px; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); cursor: pointer; transition: 0.2s; border: 1px solid #f1f5f9; }
+        .dash-card:active { transform: scale(0.98); }
+        .dash-card svg { width: 36px; height: 36px; margin-bottom: 8px; }
+        .dash-card.full-width { grid-column: span 2; }
 
-        .auth-card button {
-            width: 100%;
-            padding: 12px;
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-        }
+        /* Hidden Sections */
+        .page-section { display: none; background: #fff; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .page-section.active { display: block; }
 
-        /* Header Layout */
-        header {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 15px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-        }
+        /* Forms & Inputs */
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; }
 
-        .header-title {
-            font-size: 20px;
-            font-weight: bold;
-        }
+        .btn { padding: 10px 16px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .btn-primary { background: var(--primary); color: white; width: 100%; }
+        .btn-back { background: #e2e8f0; color: #334155; margin-bottom: 15px; }
 
-        .profile-container {
-            position: relative;
-            cursor: pointer;
-        }
+        /* Product Cards */
+        .product-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+        .product-info h4 { font-size: 16px; }
+        .product-info p { font-size: 14px; color: #64748b; }
+        .actions { display: flex; gap: 6px; }
+        .btn-sm { padding: 6px 10px; font-size: 12px; border-radius: 6px; }
+        .btn-edit { background: #f59e0b; color: white; }
+        .btn-del { background: #ef4444; color: white; }
 
-        .profile-pic {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid white;
-            background: #ccc;
-        }
-
-        /* Main Container */
-        .container {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 0 15px;
-        }
-
-        .card {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-        }
-
-        .card h3 {
-            margin-bottom: 15px;
-            color: var(--primary-color);
-            border-bottom: 2px solid #e0e0e0;
-            padding-bottom: 5px;
-        }
-
-        .form-group {
-            margin-bottom: 12px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 4px;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 15px;
-        }
-
-        .btn {
-            padding: 10px 18px;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 14px;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .btn-primary { background: var(--primary-color); color: white; }
-        .btn-danger { background: var(--danger-color); color: white; }
-        .btn-warning { background: var(--accent-color); color: #333; }
-
-        /* Product List */
-        .product-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 15px;
-        }
-
-        .product-card {
-            background: white;
-            border-radius: 8px;
-            border: 1px solid #e0e0e0;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-
-        .product-img {
-            width: 100%;
-            height: 140px;
-            object-fit: cover;
-            background: #eee;
-        }
-
-        .product-info {
-            padding: 12px;
-            flex-grow: 1;
-        }
-
-        .product-title {
-            font-weight: bold;
-            font-size: 16px;
-            margin-bottom: 5px;
-        }
-
-        .product-price {
-            color: var(--primary-color);
-            font-weight: bold;
-            font-size: 15px;
-        }
-
-        .product-actions {
-            padding: 10px;
-            background: #fafafa;
-            border-top: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        /* Modal Settings & Edit */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 450px;
-        }
-
-        .hidden { display: none !important; }
+        /* Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 20px; border-radius: 16px; width: 90%; max-width: 400px; }
     </style>
 </head>
 <body>
 
-    <!-- Auth Lock Screen -->
+    <!-- Authentication Screen -->
     <div id="auth-overlay">
         <div class="auth-card">
-            <h2>গুদাম ইনভেন্টরি লগইন</h2>
-            <p style="font-size:13px; color:#666; margin-bottom:10px;">অ্যাপ ব্যবহার করতে পাসওয়ার্ড দিন</p>
-            <input type="password" id="login-pass" placeholder="পাসওয়ার্ড লিখুন">
-            <button onclick="checkPassword()">লগইন করুন</button>
+            <h2>গুদাম ইনভেন্টরি</h2>
+            <p style="font-size:13px; color:#64748b;">অ্যাপ ব্যবহার করতে পাসওয়ার্ড লিখুন</p>
+            <input type="password" id="login-pass" placeholder="পাসওয়ার্ড">
+            <button onclick="checkPassword()">লগইন</button>
             <p id="auth-err" style="color:red; font-size:13px; margin-top:8px; display:none;">ভুল পাসওয়ার্ড!</p>
         </div>
     </div>
 
-    <!-- Main App Header -->
+    <!-- Header -->
     <header>
-        <div class="header-title">Grosary Inventory</div>
-        <div class="profile-container" onclick="openSettings()">
-            <img id="app-profile-img" src="https://via.placeholder.com/150" class="profile-pic" alt="Profile">
-        </div>
+        <h1 class="title">Home</h1>
+        <img id="app-profile-img" src="https://via.placeholder.com/150" class="profile-pic" onclick="openSettings()" alt="Profile">
     </header>
 
     <div class="container">
-        <!-- Add / Edit Product Card -->
-        <div class="card">
-            <h3 id="form-heading">নতুন প্রোডাক্ট যোগ করুন</h3>
-            <input type="hidden" id="edit-doc-id">
-            <div class="form-group">
-                <label>প্রোডাক্টের নাম:</label>
-                <input type="text" id="prod-name" placeholder="যেমন: সয়াবিন তেল ১ লিটার">
-            </div>
-            <div class="form-group">
-                <label>মূল্য (টাকা):</label>
-                <input type="number" id="prod-price" placeholder="যেমন: ১৮০">
-            </div>
-            <div class="form-group">
-                <label>পরিমাণ/স্টক:</label>
-                <input type="text" id="prod-stock" placeholder="যেমন: ৫০ বোতল">
-            </div>
-            <div class="form-group">
-                <label>ছবি URL (ঐচ্ছিক):</label>
-                <input type="text" id="prod-img-url" placeholder="https://example.com/image.jpg">
-            </div>
-            <div style="display:flex; gap:10px;">
-                <button class="btn btn-primary" onclick="saveProduct()" id="save-btn">সেভ করুন</button>
-                <button class="btn btn-warning hidden" onclick="resetForm()" id="cancel-btn">বাতিল</button>
+        <!-- Home Dashboard (Main 3 Options) -->
+        <div id="home-view">
+            <div class="dashboard-grid">
+                <div class="dash-card" onclick="showSection('scan-view')">
+                    <svg fill="none" stroke="#3b82f6" stroke-width="2" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 012-2h2m10 0h2a2 2 0 012 2v2m0 10v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/></svg>
+                    <div>Scan</div>
+                </div>
+                <div class="dash-card" onclick="showSection('new-prod-view')">
+                    <svg fill="none" stroke="#f59e0b" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+                    <div>New product</div>
+                </div>
+                <div class="dash-card full-width" onclick="showSection('products-view')">
+                    <svg fill="none" stroke="#e11d48" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                    <div>Products</div>
+                </div>
             </div>
         </div>
 
-        <!-- Product Display List -->
-        <div class="card">
+        <!-- Scan Section -->
+        <div id="scan-view" class="page-section">
+            <button class="btn btn-back" onclick="showHome()">← ব্যাক</button>
+            <h3>বারকোট/QR স্ক্যান</h3>
+            <p style="color:#64748b; font-size:14px; margin-top:10px;">ক্যামেরা চালু করার অপশন...</p>
+        </div>
+
+        <!-- New Product / Edit Section -->
+        <div id="new-prod-view" class="page-section">
+            <button class="btn btn-back" onclick="showHome()">← ব্যাক</button>
+            <h3 id="prod-form-title">নতুন প্রোডাক্ট যোগ করুন</h3>
+            <input type="hidden" id="edit-doc-id">
+            <div class="form-group" style="margin-top:15px;">
+                <label>প্রোডাক্টের নাম</label>
+                <input type="text" id="prod-name">
+            </div>
+            <div class="form-group">
+                <label>মূল্য (টাকা)</label>
+                <input type="number" id="prod-price">
+            </div>
+            <div class="form-group">
+                <label>স্টক পরিমাণ</label>
+                <input type="text" id="prod-stock">
+            </div>
+            <button class="btn btn-primary" onclick="saveProduct()">সেভ করুন</button>
+        </div>
+
+        <!-- Products List Section -->
+        <div id="products-view" class="page-section">
+            <button class="btn btn-back" onclick="showHome()">← ব্যাক</button>
             <h3>প্রোডাক্ট তালিকা</h3>
-            <div class="product-grid" id="product-container">
-                <!-- Products will be dynamically loaded here -->
+            <div id="product-container" style="margin-top:15px;">
+                <!-- Realtime data from Firestore -->
             </div>
         </div>
     </div>
 
-    <!-- Settings Modal (Password & Profile Pic) -->
+    <!-- Settings Modal -->
     <div class="modal" id="settings-modal">
         <div class="modal-content">
-            <h3 style="margin-bottom:12px; color:var(--primary-color)">সেটিংস প্যানেল</h3>
-            
+            <h3>সেটিংস প্যানেল</h3>
+            <div class="form-group" style="margin-top:12px;">
+                <label>প্রোফাইল ছবি URL</label>
+                <input type="text" id="new-profile-url">
+            </div>
             <div class="form-group">
-                <label>প্রোফাইল ছবি URL আপডেট করুন:</label>
-                <input type="text" id="new-profile-url" placeholder="নতুন ছবির লিংক দিন">
+                <label>নতুন পাসওয়ার্ড</label>
+                <input type="password" id="new-password">
             </div>
-
-            <div class="form-group" style="margin-top:15px;">
-                <label>নতুন পাসওয়ার্ড সেট করুন:</label>
-                <input type="password" id="new-password" placeholder="নতুন পাসওয়ার্ড দিন">
-            </div>
-
-            <div style="margin-top:20px; display:flex; gap:10px; justify-content:flex-end;">
-                <button class="btn btn-warning" onclick="closeSettings()">বন্ধ করুন</button>
-                <button class="btn btn-primary" onclick="updateSettings()">সেভ করুন</button>
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button class="btn" style="background:#cbd5e1;" onclick="closeSettings()">বাতিল</button>
+                <button class="btn btn-primary" onclick="updateSettings()">সেভ</button>
             </div>
         </div>
     </div>
@@ -321,9 +164,9 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <script>
-        // Your Firebase Configuration
+        // ⚠️ আপনার আসল Firebase Configuration টি এখানে বসাবেন
         const firebaseConfig = {
-            apiKey: "AIzaSy...", // Your Config Keys
+            apiKey: "AIzaSy...", 
             authDomain: "grosary-app.firebaseapp.com",
             projectId: "grosary-app",
             storageBucket: "grosary-app.appspot.com",
@@ -331,99 +174,95 @@
             appId: "1:123456789:web:abc123def456"
         };
 
-        // Initialize Firebase
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.firestore();
 
-        let currentPassword = "1234"; // Default Password
+        let currentPassword = "1234";
 
-        // Sync System Settings (Password & Profile Picture)
+        // Firebase Sync Settings
         db.collection("settings").doc("app_config").onSnapshot((doc) => {
             if (doc.exists) {
                 const data = doc.data();
                 if (data.password) currentPassword = data.password;
-                if (data.profilePic) {
-                    document.getElementById("app-profile-img").src = data.profilePic;
-                }
+                if (data.profilePic) document.getElementById("app-profile-img").src = data.profilePic;
             }
         });
 
-        // Authentication Check
+        // Authentication
         function checkPassword() {
             const entered = document.getElementById("login-pass").value;
             if (entered === currentPassword) {
-                document.getElementById("auth-overlay").classList.add("hidden");
+                document.getElementById("auth-overlay").style.display = "none";
             } else {
                 document.getElementById("auth-err").style.display = "block";
             }
         }
 
-        // Real-Time Product Listener
+        // Navigation
+        function showSection(id) {
+            document.getElementById("home-view").style.display = "none";
+            document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function showHome() {
+            document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+            document.getElementById("home-view").style.display = "block";
+            resetForm();
+        }
+
+        // Fetch Realtime Products
         db.collection("products").onSnapshot((snapshot) => {
             const container = document.getElementById("product-container");
             container.innerHTML = "";
             snapshot.forEach((doc) => {
                 const p = doc.data();
                 const id = doc.id;
-                const img = p.img || "https://via.placeholder.com/150";
-                
                 container.innerHTML += `
                     <div class="product-card">
-                        <img src="${img}" class="product-img" alt="${p.name}">
                         <div class="product-info">
-                            <div class="product-title">${p.name}</div>
-                            <div class="product-price">৳ ${p.price}</div>
-                            <div style="font-size:13px; color:#666;">স্টক: ${p.stock || 'N/A'}</div>
+                            <h4>${p.name}</h4>
+                            <p>৳ ${p.price} | স্টক: ${p.stock || '0'}</p>
                         </div>
-                        <div class="product-actions">
-                            <button class="btn btn-warning" onclick="editProduct('${id}', '${p.name}', '${p.price}', '${p.stock || ''}', '${p.img || ''}')">এডিট</button>
-                            <button class="btn btn-danger" onclick="deleteProduct('${id}')">মুছুন</button>
+                        <div class="actions">
+                            <button class="btn btn-sm btn-edit" onclick="editProduct('${id}', '${p.name}', '${p.price}', '${p.stock || ''}')">এডিট</button>
+                            <button class="btn btn-sm btn-del" onclick="deleteProduct('${id}')">মুছুন</button>
                         </div>
                     </div>
                 `;
             });
         });
 
-        // Save or Update Product
+        // Save / Edit Product
         function saveProduct() {
             const docId = document.getElementById("edit-doc-id").value;
             const name = document.getElementById("prod-name").value;
             const price = document.getElementById("prod-price").value;
             const stock = document.getElementById("prod-stock").value;
-            const img = document.getElementById("prod-img-url").value;
 
-            if (!name || !price) {
-                alert("দয়া করে নাম ও দাম সঠিক প্রদান করুন!");
-                return;
-            }
+            if (!name || !price) return alert("নাম ও দাম অবশ্যই দিন");
 
-            const payload = { name, price: Number(price), stock, img };
+            const payload = { name, price: Number(price), stock };
 
             if (docId) {
-                db.collection("products").doc(docId).update(payload).then(() => resetForm());
+                db.collection("products").doc(docId).update(payload).then(() => showHome());
             } else {
-                db.collection("products").add(payload).then(() => resetForm());
+                db.collection("products").add(payload).then(() => showHome());
             }
         }
 
-        // Edit Mode Pre-fill
-        function editProduct(id, name, price, stock, img) {
+        function editProduct(id, name, price, stock) {
             document.getElementById("edit-doc-id").value = id;
             document.getElementById("prod-name").value = name;
             document.getElementById("prod-price").value = price;
             document.getElementById("prod-stock").value = stock;
-            document.getElementById("prod-img-url").value = img;
 
-            document.getElementById("form-heading").innerText = "প্রোডাক্ট এডিট করুন";
-            document.getElementById("save-btn").innerText = "আপডেট করুন";
-            document.getElementById("cancel-btn").classList.remove("hidden");
+            document.getElementById("prod-form-title").innerText = "প্রোডাক্ট এডিট করুন";
+            showSection("new-prod-view");
         }
 
-        // Delete Product
         function deleteProduct(id) {
-            if (confirm("আপনি কি নিশ্চিত এই প্রোডাক্টটি মুছে ফেলতে চান?")) {
+            if (confirm("প্রোডাক্টটি ডিলিট করতে চান?")) {
                 db.collection("products").doc(id).delete();
             }
         }
@@ -433,39 +272,24 @@
             document.getElementById("prod-name").value = "";
             document.getElementById("prod-price").value = "";
             document.getElementById("prod-stock").value = "";
-            document.getElementById("prod-img-url").value = "";
-
-            document.getElementById("form-heading").innerText = "নতুন প্রোডাক্ট যোগ করুন";
-            document.getElementById("save-btn").innerText = "সেভ করুন";
-            document.getElementById("cancel-btn").classList.add("hidden");
+            document.getElementById("prod-form-title").innerText = "নতুন প্রোডাক্ট যোগ করুন";
         }
 
-        // Settings Modal Actions
-        function openSettings() {
-            document.getElementById("settings-modal").style.display = "flex";
-        }
-
-        function closeSettings() {
-            document.getElementById("settings-modal").style.display = "none";
-        }
+        // Settings Actions
+        function openSettings() { document.getElementById("settings-modal").style.display = "flex"; }
+        function closeSettings() { document.getElementById("settings-modal").style.display = "none"; }
 
         function updateSettings() {
             const newPic = document.getElementById("new-profile-url").value;
             const newPass = document.getElementById("new-password").value;
-
             const updateData = {};
             if (newPic) updateData.profilePic = newPic;
             if (newPass) updateData.password = newPass;
 
             if (Object.keys(updateData).length > 0) {
                 db.collection("settings").doc("app_config").set(updateData, { merge: true })
-                .then(() => {
-                    alert("সেটিংস সফলভাবে আপডেট হয়েছে!");
-                    closeSettings();
-                });
-            } else {
-                closeSettings();
-            }
+                .then(() => { alert("আপডেট হয়েছে!"); closeSettings(); });
+            } else { closeSettings(); }
         }
     </script>
 </body>
