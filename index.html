@@ -6,8 +6,8 @@
     <title>Grocery Inventory</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        /* Auth Screen Styling */
-        #auth-overlay {
+        /* Auth Screen & Change Pass Modal Styling */
+        #auth-overlay, #pass-change-modal {
             position: fixed;
             top: 0;
             left: 0;
@@ -20,15 +20,21 @@
             z-index: 999999;
         }
 
+        #pass-change-modal {
+            background: rgba(15, 23, 42, 0.6);
+            display: none;
+        }
+
         .auth-card-box {
             background: #ffffff;
             padding: 30px 24px;
             border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
             width: 85%;
             max-width: 340px;
             text-align: center;
             border: 1px solid #e2e8f0;
+            position: relative;
         }
 
         .auth-card-box h3 {
@@ -71,11 +77,31 @@
             cursor: pointer;
         }
 
+        .btn-cancel {
+            background-color: #ef4444 !important;
+            margin-top: 8px;
+        }
+
         .auth-error {
             color: #ef4444;
             font-size: 13px;
             margin-top: 10px;
             display: none;
+        }
+
+        .pass-btn-icon {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 0;
+            padding: 0;
         }
 
         * {
@@ -428,6 +454,19 @@
         </div>
     </div>
 
+    <!-- পাসওয়ার্ড পরিবর্তন করার মোডাল -->
+    <div id="pass-change-modal">
+        <div class="auth-card-box">
+            <h3>পাসওয়ার্ড পরিবর্তন</h3>
+            <p>নতুন পাসওয়ার্ড সেট করুন</p>
+            <input type="password" id="old-pass-input" placeholder="বর্তমান পাসওয়ার্ড">
+            <input type="password" id="new-pass-input" placeholder="নতুন পাসওয়ার্ড">
+            <button onclick="updateAppPassword()">সেভ করুন</button>
+            <button class="btn-cancel" onclick="closeChangePassModal()">বাতিল</button>
+            <p id="change-pass-msg" class="auth-error"></p>
+        </div>
+    </div>
+
     <div class="header">
         <div class="header-user">
             <div class="profile-pic-container" onclick="document.getElementById('user-pic-file').click();">
@@ -437,6 +476,7 @@
             <h1 id="title">Home</h1>
         </div>
         <div class="header-actions">
+            <button class="pass-btn-icon" onclick="openChangePassModal()" title="Change Password">🔑</button>
             <button class="lang-btn" onclick="toggleLanguage()" id="lang-btn">BN / EN</button>
             <button id="back-btn" class="back-btn" onclick="showHome()">Back</button>
         </div>
@@ -573,10 +613,37 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const productsCol = collection(db, "products");
+        const settingsCol = collection(db, "settings");
 
         window.dbListCache = [];
+        window.currentPassword = "1234"; // ডিফল্ট পাসওয়ার্ড
 
-        // রিয়েল-টাইম ক্লাউড সিঙ্ক
+        // রিয়েল-টাইম সেটিংস ও পাসওয়ার্ড সিঙ্ক
+        onSnapshot(doc(db, "settings", "app_config"), (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                if (data.password) window.currentPassword = data.password;
+                if (data.profilePic) {
+                    document.getElementById('user-profile-img').src = data.profilePic;
+                    localStorage.setItem('user_profile_pic', data.profilePic);
+                }
+            }
+        });
+
+        // ফায়ারবেসে পাসওয়ার্ড পরিবর্তন
+        window.dbSetPassword = async function(newPass) {
+            await setDoc(doc(db, "settings", "app_config"), { password: newPass }, { merge: true });
+            window.currentPassword = newPass;
+            return true;
+        };
+
+        // ফায়ারবেসে প্রোফাইল ছবি আপডেট
+        window.dbSetProfilePic = async function(base64Image) {
+            await setDoc(doc(db, "settings", "app_config"), { profilePic: base64Image }, { merge: true });
+            return true;
+        };
+
+        // রিয়েল-টাইম ক্লাউড প্রোডাক্ট সিঙ্ক
         onSnapshot(productsCol, (snapshot) => {
             window.dbListCache = [];
             snapshot.forEach((docSnap) => {
@@ -620,12 +687,56 @@
         // পাসওয়ার্ড চেকিং ফাংশন
         function checkAppPassword() {
             const inputPass = document.getElementById("app-pass-input").value;
-            const myPassword = "1234"; // 👈 আপনার পছন্দের পাসওয়ার্ডটি এখানে দিন (ডিফল্ট: 1234)
 
-            if (inputPass === myPassword) {
+            if (inputPass === window.currentPassword) {
                 document.getElementById("auth-overlay").style.display = "none";
             } else {
                 document.getElementById("pass-err").style.display = "block";
+            }
+        }
+
+        function openChangePassModal() {
+            document.getElementById("pass-change-modal").style.display = "flex";
+            document.getElementById("old-pass-input").value = "";
+            document.getElementById("new-pass-input").value = "";
+            document.getElementById("change-pass-msg").style.display = "none";
+        }
+
+        function closeChangePassModal() {
+            document.getElementById("pass-change-modal").style.display = "none";
+        }
+
+        async function updateAppPassword() {
+            const oldPass = document.getElementById("old-pass-input").value;
+            const newPass = document.getElementById("new-pass-input").value;
+            const msgBox = document.getElementById("change-pass-msg");
+
+            if (oldPass !== window.currentPassword) {
+                msgBox.innerText = "বর্তমান পাসওয়ার্ড ভুল!";
+                msgBox.style.color = "#ef4444";
+                msgBox.style.display = "block";
+                return;
+            }
+
+            if (!newPass || newPass.length < 3) {
+                msgBox.innerText = "কমপক্ষে ৩ ডিজিটের নতুন পাসওয়ার্ড দিন";
+                msgBox.style.color = "#ef4444";
+                msgBox.style.display = "block";
+                return;
+            }
+
+            try {
+                await window.dbSetPassword(newPass);
+                msgBox.innerText = "পাসওয়ার্ড সফলভাবে আপডেট হয়েছে!";
+                msgBox.style.color = "#059669";
+                msgBox.style.display = "block";
+                setTimeout(() => {
+                    closeChangePassModal();
+                }, 1200);
+            } catch (e) {
+                msgBox.innerText = "আপডেট করতে সমস্যা হয়েছে!";
+                msgBox.style.color = "#ef4444";
+                msgBox.style.display = "block";
             }
         }
 
@@ -761,6 +872,10 @@
                 compressImage(file, 200, 0.7, function(compressedBase64) {
                     document.getElementById('user-profile-img').src = compressedBase64;
                     localStorage.setItem('user_profile_pic', compressedBase64);
+                    // ক্লাউড সিঙ্ক
+                    if (window.dbSetProfilePic) {
+                        window.dbSetProfilePic(compressedBase64);
+                    }
                 });
             }
         });
