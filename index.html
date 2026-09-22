@@ -614,20 +614,18 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const productsCol = collection(db, "products");
-        const settingsCol = collection(db, "settings");
 
         window.dbListCache = [];
-        window.currentPassword = "1234"; // ডিফল্ট পাসওয়ার্ড
-        window.adminPin = "7788"; // 🔒 শুধু আপনার ব্যবহারের জন্য গোপন এডমিন পিন
+        window.currentPassword = "1234";
+        window.adminPin = "7788";
 
-        // রিয়েল-টাইম সেটিংস ও পাসওয়ার্ড সিঙ্ক
+        // রিয়েল-টাইমে ফায়ারবেস থেকে লোগো ও পাসওয়ার্ড সিঙ্ক করা (সব মোবাইলে একসাথেই দেখাবে)
         onSnapshot(doc(db, "settings", "app_config"), (docSnap) => {
             if (docSnap.exists()) {
                 const data = docSnap.data();
                 if (data.password) window.currentPassword = data.password;
                 if (data.profilePic) {
                     document.getElementById('user-profile-img').src = data.profilePic;
-                    localStorage.setItem('user_profile_pic', data.profilePic);
                 }
             }
         });
@@ -639,7 +637,7 @@
             return true;
         };
 
-        // ফায়ারবেসে প্রোফাইল ছবি আপডেট
+        // ফায়ারবেস ক্লাউডে লোগোর ছবি আপলোড
         window.dbSetProfilePic = async function(base64Image) {
             await setDoc(doc(db, "settings", "app_config"), { profilePic: base64Image }, { merge: true });
             return true;
@@ -829,10 +827,6 @@
         };
 
         window.onload = function() {
-            let savedPic = localStorage.getItem('user_profile_pic');
-            if(savedPic) {
-                document.getElementById('user-profile-img').src = savedPic;
-            }
             applyLanguage();
         };
 
@@ -877,13 +871,12 @@
             }
         }
 
+        // ছবি আপলোড হলে তা ফায়ারবেসে সরাসরি জমা রাখা
         document.getElementById('user-pic-file').addEventListener('change', function(e) {
             let file = e.target.files[0];
             if(file) {
                 compressImage(file, 200, 0.7, function(compressedBase64) {
                     document.getElementById('user-profile-img').src = compressedBase64;
-                    localStorage.setItem('user_profile_pic', compressedBase64);
-                    // ক্লাউড সিঙ্ক
                     if (window.dbSetProfilePic) {
                         window.dbSetProfilePic(compressedBase64);
                     }
