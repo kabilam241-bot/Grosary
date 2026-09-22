@@ -454,13 +454,13 @@
         </div>
     </div>
 
-    <!-- পাসওয়ার্ড পরিবর্তন করার মোডাল -->
+    <!-- পাসওয়ার্ড পরিবর্তন করার এডমিন মোডাল -->
     <div id="pass-change-modal">
         <div class="auth-card-box">
-            <h3>পাসওয়ার্ড পরিবর্তন</h3>
-            <p>নতুন পাসওয়ার্ড সেট করতে গোপন এডমিন পিন দিন</p>
+            <h3>এডমিন প্যানেল</h3>
+            <p>পাসওয়ার্ড পরিবর্তন করতে গোপন এডমিন পিন দিন</p>
             <input type="password" id="old-pass-input" placeholder="বর্তমান পাসওয়ার্ড">
-            <input type="password" id="admin-pin-input" placeholder="গোপন এডমিন পিন (Master PIN)">
+            <input type="password" id="admin-pin-input" placeholder="গোপন এডমিন পিন (Admin PIN)">
             <input type="password" id="new-pass-input" placeholder="নতুন পাসওয়ার্ড">
             <button onclick="updateAppPassword()">সেভ করুন</button>
             <button class="btn-cancel" onclick="closeChangePassModal()">বাতিল</button>
@@ -470,14 +470,14 @@
 
     <div class="header">
         <div class="header-user">
-            <div class="profile-pic-container" onclick="document.getElementById('user-pic-file').click();">
+            <div class="profile-pic-container" onclick="handleProfilePicClick();">
                 <img id="user-profile-img" class="profile-pic" src="https://via.placeholder.com/150" alt="Profile">
                 <input type="file" id="user-pic-file" accept="image/*" style="display:none;">
             </div>
             <h1 id="title">Home</h1>
         </div>
         <div class="header-actions">
-            <button class="pass-btn-icon" onclick="openChangePassModal()" title="Change Password">🔑</button>
+            <button class="pass-btn-icon" onclick="openChangePassModal()" title="Admin Control">🔑</button>
             <button class="lang-btn" onclick="toggleLanguage()" id="lang-btn">BN / EN</button>
             <button id="back-btn" class="back-btn" onclick="showHome()">Back</button>
         </div>
@@ -617,9 +617,11 @@
 
         window.dbListCache = [];
         window.currentPassword = "1234";
-        window.adminPin = "7788";
+        
+        // আপনার গোপনীয় এডমিন পিন (Admin PIN)
+        window.adminPin = "7788"; 
 
-        // রিয়েল-টাইমে ফায়ারবেস থেকে লোগো ও পাসওয়ার্ড সিঙ্ক করা (সব মোবাইলে একসাথেই দেখাবে)
+        // রিয়েল-টাইমে ফায়ারবেস থেকে লোগো ও পাসওয়ার্ড সিঙ্ক করা
         onSnapshot(doc(db, "settings", "app_config"), (docSnap) => {
             if (docSnap.exists()) {
                 const data = docSnap.data();
@@ -630,20 +632,20 @@
             }
         });
 
-        // ফায়ারবেসে পাসওয়ার্ড পরিবর্তন
+        // এডমিন পাসওয়ার্ড চেঞ্জ ফায়ারবেসে সেভ
         window.dbSetPassword = async function(newPass) {
             await setDoc(doc(db, "settings", "app_config"), { password: newPass }, { merge: true });
             window.currentPassword = newPass;
             return true;
         };
 
-        // ফায়ারবেস ক্লাউডে লোগোর ছবি আপলোড
+        // এডমিন লোগো পরিবর্তন ফায়ারবেসে সেভ
         window.dbSetProfilePic = async function(base64Image) {
             await setDoc(doc(db, "settings", "app_config"), { profilePic: base64Image }, { merge: true });
             return true;
         };
 
-        // রিয়েল-টাইম ক্লাউড প্রোডাক্ট সিঙ্ক
+        // রিয়েল-টাইম প্রোডাক্ট ক্লাউড সিঙ্ক
         onSnapshot(productsCol, (snapshot) => {
             window.dbListCache = [];
             snapshot.forEach((docSnap) => {
@@ -684,7 +686,7 @@
     </script>
 
     <script>
-        // পাসওয়ার্ড চেকিং ফাংশন
+        // লগইন পাসওয়ার্ড ভ্যালিডেশন
         function checkAppPassword() {
             const inputPass = document.getElementById("app-pass-input").value;
 
@@ -692,6 +694,16 @@
                 document.getElementById("auth-overlay").style.display = "none";
             } else {
                 document.getElementById("pass-err").style.display = "block";
+            }
+        }
+
+        // লোগো চেঞ্জ করার আগে এডমিন সিকিউরিটি ভেরিফিকেশন
+        function handleProfilePicClick() {
+            let pinInput = prompt("লোগো পরিবর্তন করতে এডমিন পিন (Admin PIN) প্রবেশ করান:");
+            if (pinInput === window.adminPin) {
+                document.getElementById('user-pic-file').click();
+            } else if (pinInput !== null) {
+                alert("ভুল এডমিন পিন! আপনি লোগো পরিবর্তন করতে পারবেন না।");
             }
         }
 
@@ -871,7 +883,7 @@
             }
         }
 
-        // ছবি আপলোড হলে তা ফায়ারবেসে সরাসরি জমা রাখা
+        // ছবি আপলোড হলে তা ক্লাউডে জমা রাখার ফাংশন
         document.getElementById('user-pic-file').addEventListener('change', function(e) {
             let file = e.target.files[0];
             if(file) {
